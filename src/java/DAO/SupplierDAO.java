@@ -46,5 +46,5 @@ public class SupplierDAO extends DAO{
         }
 
         return suppliers;
-        }
+    }
 }

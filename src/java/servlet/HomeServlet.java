@@ -92,7 +92,7 @@ public class HomeServlet extends HttpServlet {
      */
     @Override
     public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
+        return null;
+    }
 
 }

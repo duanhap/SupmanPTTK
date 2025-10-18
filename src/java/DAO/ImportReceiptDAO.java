@@ -8,16 +8,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Date;
+import java.util.List;
 
 import model.ImportReceipt;
 import model.ImportedProduct;
-import model.WarehouseStaff;
 
 /**
  *
  * @author ADMIN
  */
-public class ImportReceiptDAO extends DAO{
+public class ImportReceiptDAO extends DAO {
     public ImportReceiptDAO(){
         super();
     }
@@ -35,7 +35,7 @@ public class ImportReceiptDAO extends DAO{
             // 1️⃣ Thêm phiếu nhập
             stmtReceipt = connection.prepareStatement(sqlInsertReceipt, Statement.RETURN_GENERATED_KEYS);
             stmtReceipt.setDouble(1, importReceipt.getTotalPrice());
-            stmtReceipt.setDate(2, (Date)importReceipt.getDate());
+            stmtReceipt.setDate(2, new Date(importReceipt.getDate().getTime()));
             stmtReceipt.setInt(3, Integer.parseInt(importReceipt.getWarehouseStaff().getId()));
             stmtReceipt.setInt(4, importReceipt.getSupplier().getId());
             stmtReceipt.executeUpdate();
@@ -75,12 +75,10 @@ public class ImportReceiptDAO extends DAO{
             try {
                 if (stmtProduct != null) stmtProduct.close();
                 if (stmtReceipt != null) stmtReceipt.close();
-                if (connection != null) connection.setAutoCommit(true);
                 if (connection != null) connection.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
     }
-
 }

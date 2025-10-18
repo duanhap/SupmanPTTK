@@ -2,6 +2,7 @@ package DAO;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 import utils.ConfigLoader;
 
@@ -11,14 +12,13 @@ public class DAO {
     public DAO() {
         try {
             Class.forName(ConfigLoader.getDriver());
-            connection = DriverManager.getConnection(
+            this.connection = DriverManager.getConnection(
                     ConfigLoader.getUrl(),
                     ConfigLoader.getUsername(),
                     ConfigLoader.getPassword()
             );
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Connection to database failed");
+        } catch (ClassNotFoundException | SQLException e) {
+            System.out.println(e.getMessage());
         }
     }
     

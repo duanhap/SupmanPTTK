@@ -77,7 +77,6 @@ public class CustomerDAO extends DAO{
                 if (generatedKeys != null) generatedKeys.close();
                 if (memberStmt != null) memberStmt.close();
                 if (customerStmt != null) customerStmt.close();
-                connection.setAutoCommit(true);
             } catch (SQLException e) {
                 e.printStackTrace();
             }

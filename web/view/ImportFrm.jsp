@@ -4,8 +4,12 @@
     Author     : ADMIN
 --%>
 
+<%@page import="model.Supplier"%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="com.google.gson.Gson" %>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -445,6 +449,76 @@
             padding-top: 15px;
             border-top: 2px solid var(--primary);
         }
+        .supplier-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .supplier-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .supplier-details h4 {
+            margin-bottom: 2px;
+            color: var(--dark);
+        }
+
+        .supplier-details p {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .contact-info span {
+            margin-bottom: 2px;
+        }
+
+        .phone-number {
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .email-address {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #bdc3c7;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .description-text {
+            font-size: 13px;
+            color: var(--gray);
+            font-style: italic;
+            margin-top: 5px;
+        }
 
         @media (max-width: 992px) {
             body {
@@ -488,7 +562,7 @@
             </div>-->
             <a href="HomeServlet" class="nav-item">
                     <i class="fas fa-home"></i>
-                    <span>Import Products</span>
+                    <span>Dashboard</span>
              </a>
             <div class="nav-item">
                 <i class="fas fa-boxes"></i>
@@ -550,17 +624,17 @@
                         <h3 class="section-title">
                             <i class="fas fa-truck-loading"></i> Select Supplier
                         </h3>
-                        
-                        <div class="search-form">
+                       
+                        <form action="SearchSupplierServlet" method="get" class="search-form">
                             <div class="form-group">
                                 <label for="supplierSearch">Search Supplier</label>
-                                <input type="text" id="supplierSearch" class="form-control" placeholder="Enter supplier name or ID...">
+                                <input type="text" name="keyword" id="supplierSearch" class="form-control" placeholder="Enter supplier name or ID..."required>
                             </div>
-                            <button type="button" class="btn btn-primary" id="searchSupplierBtn">
+                            <button type="submit" class="btn btn-primary" id="searchSupplierBtn">
                                 <i class="fas fa-search"></i> Search
                             </button>
-                        </div>
-                        
+                        </form>
+
                         <!-- Selected Supplier Display -->
                         <div id="selectedSupplier" style="display: none;">
                             <h4 style="margin-bottom: 15px; color: var(--primary);">Selected Supplier</h4>
@@ -568,11 +642,11 @@
                                 <thead>
                                     <tr>
                                         <th>Supplier ID</th>
-                                        <th>Name</th>
+                                        <th>Supplier Information</th>
+                                        <th>Contact Details</th>
                                         <th>Address</th>
-                                        <th>Phone</th>
-                                        <th>Email</th>
-                                        <th>Action</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="supplierTableBody">
@@ -643,7 +717,7 @@
                                 <span id="subtotalAmount">0 VND</span>
                             </div>
                             <div class="summary-row">
-                                <span>Tax (10%):</span>
+                                <span>Tax (0%):</span>
                                 <span id="taxAmount">0 VND</span>
                             </div>
                             <div class="summary-row summary-total">
@@ -663,125 +737,23 @@
             </div>
         </div>
     </div>
-
+    <%
+        Supplier supplier = (Supplier) session.getAttribute("selectedSupplier");
+        Gson gson = new Gson();
+    %>
     <script>
-        // Sample data for demonstration
-        const sampleSuppliers = [
-            { id: 'S001', name: 'ABC Supplies', address: '123 Hanoi', phone: '0123456789', email: 'contact@abcsupplies.com' },
-            { id: 'S002', name: 'XYZ Electronics', address: '456 Ho Chi Minh', phone: '0987654321', email: 'info@xyzelectronics.com' }
-        ];
+        // Nếu có supplier trong session thì khởi tạo selectedSupplier, còn không null
+        let selectedSupplier = <%= (supplier != null ? gson.toJson(supplier) : "null") %>;
 
-        const sampleProducts = [
-            { id: 'P001', name: 'iPhone 17 Pro Max', category: 'Electronics', unit: 'Piece', price: 33000000 },
-            { id: 'P002', name: 'iPhone 16 Pro Max', category: 'Electronics', unit: 'Piece', price: 30000000 },
-            { id: 'P003', name: 'Samsung Galaxy S24', category: 'Electronics', unit: 'Piece', price: 25000000 }
-        ];
+        console.log("Selected Supplier from session:", selectedSupplier);
 
-        let selectedSupplier = null;
         let importedProducts = [];
+      
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             updateUI();
-            
-            // Search supplier button event
-            document.getElementById('searchSupplierBtn').addEventListener('click', function() {
-                const searchTerm = document.getElementById('supplierSearch').value;
-                if (searchTerm) {
-                    // In a real app, this would be an API call
-                    const foundSupplier = sampleSuppliers.find(s => 
-                        s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        s.id.toLowerCase().includes(searchTerm.toLowerCase())
-                    );
-                    
-                    if (foundSupplier) {
-                        selectSupplier(foundSupplier);
-                    } else {
-                        alert('No supplier found with that name or ID');
-                    }
-                } else {
-                    alert('Please enter a supplier name or ID');
-                }
-            });
-            
-            // Search product button event
-            document.getElementById('searchProductBtn').addEventListener('click', function() {
-                const searchTerm = document.getElementById('productSearch').value;
-                if (searchTerm) {
-                    // In a real app, this would be an API call
-                    const foundProduct = sampleProducts.find(p => 
-                        p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        p.id.toLowerCase().includes(searchTerm.toLowerCase())
-                    );
-                    
-                    if (foundProduct) {
-                        addProductToImport(foundProduct);
-                    } else {
-                        alert('No product found with that name or ID');
-                    }
-                } else {
-                    alert('Please enter a product name or ID');
-                }
-            });
-            
-            // Add new product button event
-            document.getElementById('addNewProductBtn').addEventListener('click', function() {
-                alert('This would open a form to add a new product in a real application');
-            });
-            
-            // Create receipt button event
-            document.getElementById('createReceiptBtn').addEventListener('click', function() {
-                if (!selectedSupplier) {
-                    alert('Please select a supplier first');
-                    return;
-                }
-                
-                if (importedProducts.length === 0) {
-                    alert('Please add at least one product to import');
-                    return;
-                }
-                
-                // In a real app, this would submit the form
-                alert('Import receipt created successfully! This would redirect to the receipt page in a real application.');
-            });
         });
-
-        function selectSupplier(supplier) {
-            selectedSupplier = supplier;
-            updateUI();
-        }
-
-        function addProductToImport(product) {
-            // Check if product already exists in import list
-            const existingProductIndex = importedProducts.findIndex(p => p.id === product.id);
-            
-            if (existingProductIndex !== -1) {
-                // Increase quantity if product already exists
-                importedProducts[existingProductIndex].quantity += 1;
-            } else {
-                // Add new product with default quantity 1
-                importedProducts.push({
-                    ...product,
-                    quantity: 1
-                });
-            }
-            
-            updateUI();
-        }
-
-        function removeProduct(productId) {
-            importedProducts = importedProducts.filter(p => p.id !== productId);
-            updateUI();
-        }
-
-        function updateProductQuantity(productId, newQuantity) {
-            const product = importedProducts.find(p => p.id === productId);
-            if (product) {
-                product.quantity = parseInt(newQuantity) || 1;
-                updateUI();
-            }
-        }
-
         function updateUI() {
             // Update supplier display
             if (selectedSupplier) {
@@ -789,91 +761,52 @@
                 document.getElementById('supplierEmptyState').style.display = 'none';
                 
                 const supplierTableBody = document.getElementById('supplierTableBody');
-                supplierTableBody.innerHTML = `
-                    <tr>
-                        <td>${selectedSupplier.id}</td>
-                        <td>${selectedSupplier.name}</td>
-                        <td>${selectedSupplier.address}</td>
-                        <td>${selectedSupplier.phone}</td>
-                        <td>${selectedSupplier.email}</td>
-                        <td class="action-cell">
-                            <button class="btn btn-danger" onclick="deselectSupplier()">
-                                <i class="fas fa-times"></i> Remove
-                            </button>
-                        </td>
-                    </tr>
+                const initials = selectedSupplier.name.split(' ').map(word => word[0]).join('').toUpperCase();
+               supplierTableBody.innerHTML = `
+                <tr>
+                    <td><strong>ID: S\${selectedSupplier.id.toString().padStart(4, '0')}</strong></td>
+                    <td>
+                        <div class="supplier-info">
+                            <div class="supplier-avatar">\${initials.substring(0, 2)}</div>
+                            <div class="supplier-details">
+                                <h4>${selectedSupplier.name}</h4>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contact-info">
+                            <span class="phone-number">${selectedSupplier.phone}</span>
+                            <span class="email-address">${selectedSupplier.email}</span>
+                        </div>
+                    </td>
+                    <td>${selectedSupplier.address}</td>
+                    <td>
+                        <div class="description-text">
+                            \${selectedSupplier.description || 'No description available'}
+                        </div>
+                    </td>
+                    <td class="action-cell">
+                        <button class="btn btn-danger" onclick="deselectSupplier()">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </td>
+                </tr>
                 `;
+
             } else {
                 document.getElementById('selectedSupplier').style.display = 'none';
                 document.getElementById('supplierEmptyState').style.display = 'block';
             }
             
-            // Update products display
-            if (importedProducts.length > 0) {
-                document.getElementById('productsTable').style.display = 'block';
-                document.getElementById('productsEmptyState').style.display = 'none';
-                
-                const productTableBody = document.getElementById('productTableBody');
-                productTableBody.innerHTML = '';
-                
-                let subtotal = 0;
-                
-                importedProducts.forEach(product => {
-                    const productTotal = product.quantity * product.price;
-                    subtotal += productTotal;
-                    
-                    productTableBody.innerHTML += `
-                        <tr>
-                            <td>${product.id}</td>
-                            <td>${product.name}</td>
-                            <td>${product.category}</td>
-                            <td>${product.unit}</td>
-                            <td>
-                                <input type="number" class="quantity-input" 
-                                       value="${product.quantity}" min="1" 
-                                       onchange="updateProductQuantity('${product.id}', this.value)">
-                            </td>
-                            <td>
-                                <input type="text" class="price-input" 
-                                       value="${formatCurrency(product.price)}" readonly>
-                            </td>
-                            <td class="total-amount">${formatCurrency(productTotal)}</td>
-                            <td class="action-cell">
-                                <button class="btn btn-danger" onclick="removeProduct('${product.id}')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                
-                const tax = subtotal * 0.1;
-                const total = subtotal + tax;
-                
-                document.getElementById('subtotalAmount').textContent = formatCurrency(subtotal);
-                document.getElementById('taxAmount').textContent = formatCurrency(tax);
-                document.getElementById('totalAmount').textContent = formatCurrency(total);
-            } else {
-                document.getElementById('productsTable').style.display = 'none';
-                document.getElementById('productsEmptyState').style.display = 'block';
-                
-                document.getElementById('subtotalAmount').textContent = '0 VND';
-                document.getElementById('taxAmount').textContent = '0 VND';
-                document.getElementById('totalAmount').textContent = '0 VND';
-            }
         }
-
         function deselectSupplier() {
-            selectedSupplier = null;
-            updateUI();
+            fetch('ImportServlet?action=removeSupplier', { method: 'POST' })
+                .then(() => {
+                    selectedSupplier = null;
+                    updateUI();
+             });
         }
 
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND'
-            }).format(amount);
-        }
 
         // Navigation functionality
         document.querySelectorAll('.nav-item').forEach(item => {
