@@ -12,6 +12,10 @@ public class Staff extends Member{
         super(member.getId(), member.getUserName(), member.getPassWord(), member.getName(), member.getBirthOfDay(), member.getEmail(), member.getPhone(), member.getAddress());
         this.position = position;
     }
+    public Staff(Member member){
+        super(member.getId(), member.getUserName(), member.getPassWord(), member.getName(), member.getBirthOfDay(), member.getEmail(), member.getPhone(), member.getAddress());
+ 
+    }
 
     public String getPosition() {
         return position;

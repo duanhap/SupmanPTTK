@@ -20,6 +20,9 @@ public class Product {
         this.type = type;
         this.standardPrice = standardPrice;
     }
+    public Product(int id){
+        this.id = id;
+    }
     public int getId() {
         return id;
     }

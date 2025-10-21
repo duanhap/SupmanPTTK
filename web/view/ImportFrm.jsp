@@ -4,6 +4,8 @@
     Author     : ADMIN
 --%>
 
+<%@page import="java.util.List"%>
+<%@page import="model.Product"%>
 <%@page import="model.Supplier"%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -669,18 +671,18 @@
                             <i class="fas fa-boxes"></i> Import Products
                         </h3>
                         
-                        <div class="search-form">
+                        <form action="SearchProductServlet" method="get" class="search-form">
                             <div class="form-group">
                                 <label for="productSearch">Search Product</label>
-                                <input type="text" id="productSearch" class="form-control" placeholder="Enter product name or ID...">
+                                <input type="text" name="keyword" id="productSearch" class="form-control" placeholder="Enter product name or ID..."required>
                             </div>
-                            <button type="button" class="btn btn-primary" id="searchProductBtn">
+                            <button type="submit" class="btn btn-primary" id="searchProductBtn">
                                 <i class="fas fa-search"></i> Search
                             </button>
-                            <button type="button" class="btn btn-success" id="addNewProductBtn">
+<!--                            <button type="button" class="btn btn-success" id="addNewProductBtn">
                                 <i class="fas fa-plus"></i> Add New Product
-                            </button>
-                        </div>
+                            </button>-->
+                        </form>
                         
                         <!-- Products Table -->
                         <div id="productsTable">
@@ -739,20 +741,48 @@
     </div>
     <%
         Supplier supplier = (Supplier) session.getAttribute("selectedSupplier");
+        List<Product> selectedProducts = (List<Product>) session.getAttribute("selectedProducts");
+
         Gson gson = new Gson();
     %>
     <script>
-        // Nếu có supplier trong session thì khởi tạo selectedSupplier, còn không null
+       
         let selectedSupplier = <%= (supplier != null ? gson.toJson(supplier) : "null") %>;
+        let importedProducts = <%= (selectedProducts != null ? gson.toJson(selectedProducts) : "[]") %>;
 
-        console.log("Selected Supplier from session:", selectedSupplier);
-
-        let importedProducts = [];
-      
+        console.log("Selected Supplier:", selectedSupplier);
+        console.log("Imported Products:", importedProducts);
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             updateUI();
+            // Create receipt button event
+            document.getElementById('createReceiptBtn').addEventListener('click', function() {
+               if (!selectedSupplier) {
+                    alert('Please select a supplier first');
+                    return;
+                }
+
+                if (importedProducts.length === 0) {
+                    alert('Please add at least one product to import');
+                    return;
+                }
+
+                fetch('ImportServlet?action=createImportReceipt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Import receipt created successfully!');
+                        window.location.href = 'ImportReceiptServlet';
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(err => console.error('Create receipt error:', err));
+            });
         });
         function updateUI() {
             // Update supplier display
@@ -769,17 +799,17 @@
                         <div class="supplier-info">
                             <div class="supplier-avatar">\${initials.substring(0, 2)}</div>
                             <div class="supplier-details">
-                                <h4>${selectedSupplier.name}</h4>
+                                <h4>\${selectedSupplier.name}</h4>
                             </div>
                         </div>
                     </td>
                     <td>
                         <div class="contact-info">
-                            <span class="phone-number">${selectedSupplier.phone}</span>
-                            <span class="email-address">${selectedSupplier.email}</span>
+                            <span class="phone-number">\${selectedSupplier.phone}</span>
+                            <span class="email-address">\${selectedSupplier.email}</span>
                         </div>
                     </td>
-                    <td>${selectedSupplier.address}</td>
+                    <td>\${selectedSupplier.address}</td>
                     <td>
                         <div class="description-text">
                             \${selectedSupplier.description || 'No description available'}
@@ -797,8 +827,99 @@
                 document.getElementById('selectedSupplier').style.display = 'none';
                 document.getElementById('supplierEmptyState').style.display = 'block';
             }
+              // Update products display
+            if (importedProducts.length > 0) {
+                document.getElementById('productsTable').style.display = 'block';
+                document.getElementById('productsEmptyState').style.display = 'none';
+                
+                const productTableBody = document.getElementById('productTableBody');
+                productTableBody.innerHTML = '';
+                
+                let subtotal = 0;
+                
+                importedProducts.forEach(product => {
+                    const productTotal = product.inventoryQuantity * product.standardPrice;
+                    subtotal += productTotal;
+                    
+                    productTableBody.innerHTML += `
+                        <tr>
+                            <td>
+                                <strong>ID:P\${product.id.toString().padStart(4, '0')}</strong>
+                            </td>   
+                            <td>
+                                <div class="product-info">
+                                    <div class="product-details">
+                                        <h4>\${product.name}</h4>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>\${product.type}</td>
+                            <td>\${product.unit}</td>
+                            <td>
+                                <input type="number" class="quantity-input" 
+                                       value="\${product.inventoryQuantity}" min="1" 
+                                       onchange="updateProductQuantity('\${product.id}', this.value)">
+                            </td>
+                            <td>
+                                <input type="text" class="price-input" 
+                                       value="\${formatCurrency(product.standardPrice)}"
+                                       onchange="updateProductPrice('\${product.id}', this.value)">
+                            </td>
+                            <td class="total-amount">\${formatCurrency(productTotal)}</td>
+                            <td class="action-cell">
+                                <button class="btn btn-danger" onclick="removeProduct('\${product.id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                const tax = subtotal * 0.0;
+                const total = subtotal + tax;
+                
+                document.getElementById('subtotalAmount').textContent = formatCurrency(subtotal);
+                document.getElementById('taxAmount').textContent = formatCurrency(tax);
+                document.getElementById('totalAmount').textContent = formatCurrency(total);
+            } else {
+                document.getElementById('productsTable').style.display = 'none';
+                document.getElementById('productsEmptyState').style.display = 'block';
+                
+                document.getElementById('subtotalAmount').textContent = '0 VND';
+                document.getElementById('taxAmount').textContent = '0 VND';
+                document.getElementById('totalAmount').textContent = '0 VND';
+            }
             
         }
+        function updateProductQuantity(productId, newQuantity) {
+            const product = importedProducts.find(p => p.id == productId);
+            console.log("change quantity:", newQuantity);
+
+            if (product) {
+                 console.log("change quantity:", product);
+                product.inventoryQuantity = parseInt(newQuantity) || 1;
+                updateUI();
+            }
+        }
+         function updateProductPrice(productId, newPrice) {
+            const product = importedProducts.find(p => p.id == productId);
+            console.log("change price:", newPrice);
+
+            if (product) {
+                console.log("change product before:", product);
+                product.standardPrice = parseFloat(newPrice) || 1;
+                console.log("change product after:", product);
+                updateUI();
+            }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount);
+        }
+
         function deselectSupplier() {
             fetch('ImportServlet?action=removeSupplier', { method: 'POST' })
                 .then(() => {
@@ -806,6 +927,22 @@
                     updateUI();
              });
         }
+        function removeProduct(productId) {
+            const product = { id: productId };
+            if (confirm('Remove this product from the list?')) {
+                fetch('ImportServlet?action=removeProduct', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(product)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) window.location.reload();
+                    else alert(data.message);
+                });
+            }
+        }
+
 
 
         // Navigation functionality

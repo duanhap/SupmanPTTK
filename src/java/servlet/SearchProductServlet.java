@@ -4,7 +4,7 @@
  */
 package servlet;
 
-import DAO.SupplierDAO;
+import DAO.ProductDAO;
 import jakarta.servlet.RequestDispatcher;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -15,19 +15,21 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
+import model.Product;
 import model.Supplier;
 
 /**
  *
  * @author ADMIN
  */
-@WebServlet(name = "SearchSupplierServlet", urlPatterns = {"/SearchSupplierServlet"})
-public class SearchSupplierServlet extends HttpServlet {
-    private SupplierDAO supplierDAO;
+@WebServlet(name = "SearchProductServlet", urlPatterns = {"/SearchProductServlet"})
+public class SearchProductServlet extends HttpServlet {
+    private ProductDAO productDAO;
     @Override
     public void init() {
-        supplierDAO = new SupplierDAO();
+        productDAO = new ProductDAO();
     }
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -45,10 +47,10 @@ public class SearchSupplierServlet extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet SearchSupplierServlet</title>");
+            out.println("<title>Servlet SearchProductServlet</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet SearchSupplierServlet at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet SearchProductServlet at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -68,23 +70,22 @@ public class SearchSupplierServlet extends HttpServlet {
             throws ServletException, IOException {
         String keyword = request.getParameter("keyword");
 
-        List<Supplier> suppliers = new ArrayList<>();
+        List<Product> products = new ArrayList<>();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            suppliers = supplierDAO.getSuplierByname(keyword);
+            products = productDAO.getProductByName(keyword);
         }
 
         // Gửi danh sách sang JSP hiển thị
-        request.setAttribute("suppliers", suppliers);
+        request.setAttribute("products", products);
         request.setAttribute("keyword", keyword);
         System.out.println("Keyword: " + keyword);
-        System.out.println("Suppliers found: " + suppliers.size());
+        System.out.println("Products found: " + products.size());
 
 
         // Forward về trang JSP hiển thị kết quả
-        RequestDispatcher rd = request.getRequestDispatcher("view/SearchSupplierFrm.jsp");
+        RequestDispatcher rd = request.getRequestDispatcher("view/SearchProductFrm.jsp");
         rd.forward(request, response);
-    
     }
 
     /**
@@ -98,8 +99,7 @@ public class SearchSupplierServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        RequestDispatcher rd = request.getRequestDispatcher("view/SearchSupplierFrm.jsp");
-        rd.forward(request, response);
+        processRequest(request, response);
     }
 
     /**

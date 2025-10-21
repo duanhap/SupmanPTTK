@@ -1,6 +1,7 @@
 package model;
 
 import java.util.Date;
+import java.util.List;
 
 
 
@@ -8,12 +9,12 @@ public class ImportReceipt {
     private int id;
     private double totalPrice;
     private Date Date;
-    private ImportedProduct[] listImportedProduct;
+    private List<ImportedProduct> listImportedProduct;
     private Supplier supplier;
     private WarehouseStaff warehouseStaff;    
     public ImportReceipt() {
     }
-    public ImportReceipt(int id, double totalPrice, Date Date, ImportedProduct[] listImportedProduct, Supplier supplier, WarehouseStaff warehouseStaff) {
+    public ImportReceipt(int id, double totalPrice, Date Date, List<ImportedProduct>  listImportedProduct, Supplier supplier, WarehouseStaff warehouseStaff) {
         this.id = id;
         this.totalPrice = totalPrice;
         this.Date = Date;
@@ -39,10 +40,10 @@ public class ImportReceipt {
     public void setDate(Date date) {
         Date = date;
     }
-    public ImportedProduct[] getListImportedProduct() {
+    public List<ImportedProduct>  getListImportedProduct() {
         return listImportedProduct;
     }
-    public void setListImportedProduct(ImportedProduct[] listImportedProduct) {
+    public void setListImportedProduct(List<ImportedProduct>  listImportedProduct) {
         this.listImportedProduct = listImportedProduct;
     }
     public Supplier getSupplier() {
@@ -57,6 +58,8 @@ public class ImportReceipt {
     public void setWarehouseStaff(WarehouseStaff warehouseStaff) {
         this.warehouseStaff = warehouseStaff;
     }
+
+    
 
     
 }

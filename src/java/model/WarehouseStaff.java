@@ -12,6 +12,9 @@ public class WarehouseStaff extends Staff {
         super(id, userName, passWord, name, birthOfDay, email, phone, address, position);
         this.salary = salary;
     }
+    public WarehouseStaff(Staff staff){
+         super(staff.getId(), staff.getUserName(), staff.getPassWord(), staff.getName(), staff.getBirthOfDay(), staff.getEmail(), staff.getPhone(), staff.getAddress(), staff.getPosition());
+    }
 
     public double getSalary() {
         return salary;

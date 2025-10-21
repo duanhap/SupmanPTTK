@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import model.ImportedProduct;
 
 /**
  *
@@ -39,6 +40,43 @@ public class ProductDAO extends DAO{
             return false;
         }
     }
+        public boolean updateProduct(List<ImportedProduct> importedProducts) {
+        String selectSql = "SELECT inventoryQuantity FROM tblProduct WHERE id = ?";
+        String updateSql = "UPDATE tblProduct SET inventoryQuantity = ? WHERE id = ?";
+
+        try (
+            PreparedStatement selectStmt = connection.prepareStatement(selectSql);
+            PreparedStatement updateStmt = connection.prepareStatement(updateSql)
+        ) {
+            for (ImportedProduct importedProduct : importedProducts) {
+                int productId = importedProduct.getId();
+                int importQuantity = importedProduct.getImportQuantity();
+
+                // Lấy số lượng hiện tại trong kho
+                selectStmt.setInt(1, productId);
+                try (ResultSet rs = selectStmt.executeQuery()) {
+                    if (rs.next()) {
+                        int currentQuantity = rs.getInt("inventoryQuantity");
+                        int newQuantity = currentQuantity + importQuantity;
+
+                        // Cập nhật số lượng mới
+                        updateStmt.setInt(1, newQuantity);
+                        updateStmt.setInt(2, productId);
+                        updateStmt.executeUpdate();
+                    } else {
+                        System.out.println("Không tìm thấy sản phẩm có id = " + productId);
+                    }
+                }
+            }
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    
     public List<Product> getProductByName(String name){
         List<Product> products = new ArrayList<>();
         String sql = "SELECT * FROM tblProduct WHERE name LIKE ?";

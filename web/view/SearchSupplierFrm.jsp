@@ -670,37 +670,10 @@
          // Hiển thị dữ liệu ngay lập tức
          displaySuppliers();
 
-         // Xử lý sự kiện tìm kiếm
-         document.getElementById('searchForm').addEventListener('submit', function(e) {
-             //e.preventDefault(); ngăn form gửi request đến Servlet.
-             handleSearch();
-         });
 
-         document.getElementById('searchTerm').addEventListener('input', function() {
-             if (this.value === '') {
-                 handleSearch();
-             }
-         });
      });
 
-     function handleSearch() {
-         const searchTerm = document.getElementById('searchTerm').value.toLowerCase().trim();
-
-         if (searchTerm) {
-             filteredSuppliers = suppliers.filter(supplier => 
-                 supplier.name.toLowerCase().includes(searchTerm) ||
-                 (supplier.phone && supplier.phone.includes(searchTerm)) ||
-                 (supplier.email && supplier.email.toLowerCase().includes(searchTerm)) ||
-                 (supplier.address && supplier.address.toLowerCase().includes(searchTerm)) ||
-                 (supplier.description && supplier.description.toLowerCase().includes(searchTerm))
-             );
-         } else {
-             filteredSuppliers = [...suppliers];
-         }
-
-         console.log('After search - Filtered:', filteredSuppliers);
-         displaySuppliers();
-     }
+ 
 
      function displaySuppliers() {
          const tableBody = document.getElementById('suppliersTableBody');
@@ -731,84 +704,61 @@
              const initials = supplier.name ? supplier.name.split(' ').map(w => w[0]).join('').toUpperCase() : 'NA';
 
              row.innerHTML = `
-                 <tbody id="suppliersTableBody">
-                     <c:choose>
-                         <c:when test="${not empty suppliers}">
-                             <c:forEach var="supplier" items="${suppliers}">
-                                 <tr>
-                                         <td><strong>ID: S\${supplier.id.toString().padStart(4, '0')}</strong></td>
-                                     <td>
-                                         <div class="supplier-info">
-                                             <div class="supplier-avatar">
-                                                 ${fn:substring(fn:replace(supplier.name, ' ', ''), 0, 2)}
-                                             </div>
-                                             <div class="supplier-details">
-                                                 <h4>${supplier.name}</h4>
-                                             </div>
-                                         </div>
-                                     </td>
-                                     <td>
-                                         <div class="contact-info">
-                                             <span class="phone-number">${supplier.phone}</span>
-                                             <span class="email-address">${supplier.email}</span>
-                                         </div>
-                                     </td>
-                                     <td>${supplier.address}</td>
-                                     <td>
-                                         <div class="description-text">
-                                             ${supplier.description}
-                                         </div>
-                                     </td>
-                                     <td class="action-cell">
-                                         <button class="btn btn-primary btn-sm" onclick="selectSupplier(${supplier.id})">
-                                             <i class="fas fa-check"></i> Choose
-                                         </button>
-                                     </td>
-                                 </tr>
-                             </c:forEach>
-                         </c:when>
-                         <c:otherwise>
-                             <tr>
-                                 <td colspan="6" style="text-align: center;">No suppliers found</td>
-                             </tr>
-                         </c:otherwise>
-                     </c:choose>
-                 </tbody>
-             `
+                    <td>
+                        <strong>ID: S\${supplier.id.toString().padStart(4, '0')}</strong>
+                    </td>
+                    <td>
+                        <div class="supplier-info">
+                            <div class="supplier-avatar">\${initials.substring(0, 2)}</div>
+                            <div class="supplier-details">
+                                <h4>\${supplier.name}</h4>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contact-info">
+                            <span class="phone-number">\${supplier.phone}</span>
+                            <span class="email-address">\${supplier.email}</span>
+                        </div>
+                    </td>
+                    <td>\${supplier.address}</td>
+                    <td>
+                        <div class="description-text">
+                            \${supplier.description || 'No description available'}
+                        </div>
+                    </td>
+                    <td class="action-cell">
+                        <button class="btn btn-primary btn-sm" onclick="selectSupplier(\${supplier.id})">
+                            <i class="fas fa-check"></i> Choose
+                        </button>
+                    </td>
+                `;
+             
              tableBody.appendChild(row);
          });
      }
 
-//     function selectSupplier(supplierId) {
-//         console.log('Selected supplier ID:', supplierId);
-//         const supplier = suppliers.find(s => s.id === supplierId);
-//         if (supplier) {
-//             if (confirm(`Select \${supplier.name} as your supplier?`)) {
-//                 sessionStorage.setItem('selectedSupplier', JSON.stringify(supplier));
-//                 window.location.href = 'ImportServlet';
-//             }
-//         }
-//     }
         function selectSupplier(supplierId) {
             console.log('Selected supplier ID:', supplierId);
             const supplier = suppliers.find(s => s.id === supplierId);
-            if (supplier) {
-                if (confirm(`Select \${supplier.name} as your supplier?`)) {
-                    fetch('ImportServlet', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(supplier)  // Gửi toàn bộ object supplier
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            window.location.href = 'ImportServlet';  // Chuyển hướng đến ImportFrm.jsp (không cần qua servlet nữa)
-                        }
-                    })
-                    .catch(error => console.error('Error sending supplier:', error));
-                }
+            if (supplier && confirm(`Select \${supplier.name} as your supplier?`)) {
+                fetch('ImportServlet?action=selectSupplier', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(supplier)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = 'ImportServlet';
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => console.error('Error sending supplier:', err));
             }
         }
+
          // Navigation functionality
          document.querySelectorAll('.nav-item').forEach(item => {
              item.addEventListener('click', function() {

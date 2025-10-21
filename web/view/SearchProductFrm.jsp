@@ -5,6 +5,8 @@
 --%>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -609,19 +611,21 @@
                 <div class="form-content">
                     <!-- Search Section -->
                     <div class="search-section">
-                        <form id="searchForm" class="search-form">
-                            <div class="form-group">
-                                <label for="searchTerm">Search Products</label>
-                                <input type="text" id="searchTerm" class="form-control" 
-                                       placeholder="Search by product name, ID, type, or description...">
-                            </div>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i> Search
-                            </button>
-                        </form>
+                        <form id="searchForm" class="search-form" action="SearchProductServlet" method="get">
+                             <div class="form-group">
+                                 <label for="searchTerm">Search Products</label>
+                                 <input type="text" id="searchTerm" name="keyword" class="form-control"
+                                        placeholder="Enter product name or ID..."
+                                        value="${keyword != null ? keyword : ''}">
+                             </div>
+                             <button type="submit" class="btn btn-primary">
+                                 <i class="fas fa-search"></i> Search
+                             </button>
+                         </form>
+
                         
                         <!-- Filter Section -->
-                        <div class="filter-section">
+<!--                        <div class="filter-section">
                             <div class="filter-group">
                                 <label for="typeFilter">Type:</label>
                                 <select id="typeFilter" class="filter-select">
@@ -642,13 +646,13 @@
                                     <option value="low">Low (0-19)</option>
                                 </select>
                             </div>
-                        </div>
+                        </div>-->
                         
                         <div class="action-buttons">
                             <a href="AddProductFrm.jsp" class="btn btn-success">
                                 <i class="fas fa-plus"></i> Add New Product
                             </a>
-                            <a href="ImportFrm.jsp" class="btn btn-secondary">
+                            <a href="ImportServlet" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Back to Import
                             </a>
                         </div>
@@ -689,118 +693,46 @@
     </div>
 
     <script>
-        // Sample product data matching your database structure
-        const products = [
-            {
-                id: 1,
-                name: 'iPhone 17 Pro Max',
-                description: 'Latest iPhone model with advanced features',
-                unit: 'Piece',
-                inventoryQuantity: 300,
-                type: 'iPhone',
-                standardPrice: 34999000
-            },
-            {
-                id: 2,
-                name: 'iPhone 16 Pro Max',
-                description: 'Premium smartphone with excellent camera',
-                unit: 'Piece',
-                inventoryQuantity: 200,
-                type: 'iPhone',
-                standardPrice: 31790000
-            },
-            {
-                id: 3,
-                name: 'Samsung Galaxy S24 Ultra',
-                description: 'Flagship Android phone with S-Pen',
-                unit: 'Piece',
-                inventoryQuantity: 150,
-                type: 'Samsung',
-                standardPrice: 28990000
-            },
-            {
-                id: 4,
-                name: 'iPad Pro 12.9"',
-                description: 'Professional tablet for work and creativity',
-                unit: 'Piece',
-                inventoryQuantity: 80,
-                type: 'Tablet',
-                standardPrice: 25990000
-            },
-            {
-                id: 5,
-                name: 'AirPods Pro 3',
-                description: 'Wireless earbuds with noise cancellation',
-                unit: 'Pair',
-                inventoryQuantity: 25,
-                type: 'Accessory',
-                standardPrice: 5990000
-            },
-            {
-                id: 6,
-                name: 'MacBook Air M3',
-                description: 'Lightweight laptop for everyday use',
-                unit: 'Piece',
-                inventoryQuantity: 45,
-                type: 'Laptop',
-                standardPrice: 32990000
-            }
-        ];
+     let products = [];
+     let filteredProducts = [];
 
-        let filteredProducts = [...products];
+     try {
+         <c:if test="${not empty products}">
+         products = [
+             <c:forEach var="p" items="${products}" varStatus="status">
+             {
+                 id: ${p.id},
+                 name: "${fn:escapeXml(p.name)}",
+                 description: "${fn:escapeXml(p.description)}",
+                 unit: "${fn:escapeXml(p.unit)}",
+                 inventoryQuantity: "${fn:escapeXml(p.inventoryQuantity)}",
+                 type: "${fn:escapeXml(p.type)}",
+                 standardPrice: "${fn:escapeXml(p.standardPrice)}"
+             }<c:if test="${!status.last}">,</c:if>
+             </c:forEach>
+         ];
+         </c:if>
+         <c:if test="${empty products}">
+         products = [];
+         </c:if>
 
-        // Initialize the page
+         console.log('Products loaded:', products);
+         filteredProducts = [...products];
+     } catch (error) {
+         console.error('Error initializing products:', error);
+         products = [];
+         filteredProducts = [];
+     }
+
+
         document.addEventListener('DOMContentLoaded', function() {
+          console.log('DOM ready - Products:', products);
+         console.log('DOM ready - Filtered:', filteredProducts);
             displayProducts();
-            
-            // Search form submission
-            document.getElementById('searchForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                filterProducts();
-            });
-            
-            // Filter changes
-            document.getElementById('typeFilter').addEventListener('change', filterProducts);
-            document.getElementById('stockFilter').addEventListener('change', filterProducts);
-            
-            // Clear search when input is emptied
-            document.getElementById('searchTerm').addEventListener('input', function() {
-                if (this.value === '') {
-                    filterProducts();
-                }
-            });
+           
         });
+      
 
-        function filterProducts() {
-            const searchTerm = document.getElementById('searchTerm').value.toLowerCase();
-            const typeFilter = document.getElementById('typeFilter').value;
-            const stockFilter = document.getElementById('stockFilter').value;
-            
-            filteredProducts = products.filter(product => {
-                // Text search
-                const matchesSearch = !searchTerm || 
-                    product.name.toLowerCase().includes(searchTerm) ||
-                    (product.description && product.description.toLowerCase().includes(searchTerm)) ||
-                    product.type.toLowerCase().includes(searchTerm);
-                
-                // Type filter
-                const matchesType = !typeFilter || product.type === typeFilter;
-                
-                // Stock filter
-                let matchesStock = true;
-                if (stockFilter === 'high') {
-                    matchesStock = product.inventoryQuantity >= 100;
-                } else if (stockFilter === 'medium') {
-                    matchesStock = product.inventoryQuantity >= 20 && product.inventoryQuantity <= 99;
-                } else if (stockFilter === 'low') {
-                    matchesStock = product.inventoryQuantity < 20;
-                }
-                
-                return matchesSearch && matchesType && matchesStock;
-            });
-            
-            displayProducts();
-        }
 
         function displayProducts() {
             const tableBody = document.getElementById('productsTableBody');
@@ -808,7 +740,7 @@
             const resultsCount = document.getElementById('resultsCount');
             
             // Update results count
-            resultsCount.textContent = `Showing ${filteredProducts.length} product\${filteredProducts.length !== 1 ? 's' : ''}`;
+            resultsCount.textContent = `Showing \${filteredProducts.length} product\${filteredProducts.length !== 1 ? 's' : ''}`;
             
             if (filteredProducts.length === 0) {
                 tableBody.innerHTML = '';
@@ -826,9 +758,6 @@
             filteredProducts.forEach(product => {
                 const row = document.createElement('tr');
                 
-                // Generate avatar initials
-                const initials = product.name.split(' ').map(word => word[0]).join('').toUpperCase();
-                
                 // Determine stock level class
                 let stockClass = 'stock-high';
                 if (product.inventoryQuantity < 20) {
@@ -839,28 +768,26 @@
                 
                 row.innerHTML = `
                     <td>
-                        <strong>P${product.id.toString().padStart(3, '0')}</strong>
+                        <strong>ID:P\${product.id.toString().padStart(4, '0')}</strong>
                     </td>
                     <td>
                         <div class="product-info">
-                            <div class="product-avatar">${initials.substring(0, 2)}</div>
                             <div class="product-details">
-                                <h4>${product.name}</h4>
-                                <p>ID: P${product.id.toString().padStart(3, '0')}</p>
+                                <h4>\${product.name}</h4>
                             </div>
                         </div>
                     </td>
-                    <td>${product.type}</td>
-                    <td>${product.unit}</td>
-                    <td class="price">${formatCurrency(product.standardPrice)}</td>
-                    <td class="stock-info ${stockClass}">${product.inventoryQuantity}</td>
+                    <td>\${product.type}</td>
+                    <td>\${product.unit}</td>
+                    <td class="price">\${formatCurrency(product.standardPrice)}</td>
+                    <td class="stock-info \${stockClass}">\${product.inventoryQuantity}</td>
                     <td>
-                        <div class="description-text" title="${product.description || 'No description'}">
-                            ${product.description || 'No description available'}
+                        <div class="description-text" title="\${product.description || 'No description'}">
+                            \${product.description || 'No description available'}
                         </div>
                     </td>
                     <td class="action-cell">
-                        <button class="btn btn-primary btn-sm" onclick="selectProduct(${product.id})">
+                        <button class="btn btn-primary btn-sm" onclick="selectProduct(\${product.id})">
                             <i class="fas fa-check"></i> Choose
                         </button>
                     </td>
@@ -870,21 +797,52 @@
             });
         }
 
+       
+
         function selectProduct(productId) {
+            console.log('Selected product ID:', productId);
             const product = products.find(p => p.id === productId);
-            if (product) {
-                // In a real application, this would pass the product data back to the Import form
-                if (confirm(`Add ${product.name} to import list?`)) {
-                    // Store selected product in sessionStorage to pass to Import form
-                    const selectedProducts = JSON.parse(sessionStorage.getItem('selectedProducts') || '[]');
-                    selectedProducts.push(product);
-                    sessionStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
-                    
-                    // Redirect back to Import form
-                    window.location.href = 'ImportFrm.jsp';
-                }
+
+            if (!product) {
+                alert('Product not found!');
+                return;
+            }
+
+            // Lấy danh sách sản phẩm đã chọn từ sessionStorage (client-side)
+            const selectedProducts = JSON.parse(sessionStorage.getItem('selectedProducts') || '[]');
+
+            // Kiểm tra xem sản phẩm đã có chưa
+            const alreadyExists = selectedProducts.some(p => p.id === productId);
+
+            if (alreadyExists) {
+                alert(`Product "\${product.name}" is already in the import list!`);
+                return;
+            }
+
+            // Nếu chưa có, xác nhận thêm vào
+            if (confirm(`Add "\${product.name}" to import list?`)) {
+                // Thêm vào sessionStorage
+                selectedProducts.push(product);
+                sessionStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
+
+                // Gửi lên server (nếu cần)
+                fetch('ImportServlet?action=selectProduct', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(product)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = 'ImportServlet';
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => console.error('Error sending product:', err));
             }
         }
+
 
         function formatCurrency(amount) {
             return new Intl.NumberFormat('vi-VN', {
