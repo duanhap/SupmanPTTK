@@ -33,7 +33,7 @@ public class ImportReceiptDAO extends DAO {
         PreparedStatement stmtProduct = null;
 
         try {
-            connection.setAutoCommit(false); // bắt đầu transaction
+            connection.setAutoCommit(false); 
 
             // 1️⃣ Thêm phiếu nhập
             stmtReceipt = connection.prepareStatement(sqlInsertReceipt, Statement.RETURN_GENERATED_KEYS);
@@ -56,7 +56,7 @@ public class ImportReceiptDAO extends DAO {
                 stmtProduct.setInt(1, ip.getImportQuantity());
                 stmtProduct.setDouble(2, ip.getImportPrice());
                 stmtProduct.setInt(3, importReceiptId);
-                stmtProduct.setInt(4, ip.getId()); // đây là ID sản phẩm từ bảng Product
+                stmtProduct.setInt(4, ip.getId()); 
                 stmtProduct.addBatch();
             }
             //stmtProduct.executeBatch();   // 2️⃣ Thêm từng sản phẩm chi tiết bằng batch
@@ -66,7 +66,7 @@ public class ImportReceiptDAO extends DAO {
 
             connection.commit(); // xác nhận transaction
 
-            // 3️⃣ Select lại tất cả sản phẩm vừa insert để trả về full object
+    
             List<ImportedProduct> list = new ArrayList<>();
             String sqlSelectProducts = "SELECT * FROM tblImportedProduct WHERE tblImportReceiptId = ?";
             try (PreparedStatement stmtSelect = connection.prepareStatement(sqlSelectProducts)) {
@@ -74,6 +74,13 @@ public class ImportReceiptDAO extends DAO {
                 ResultSet rsSelect = stmtSelect.executeQuery();
                 while (rsSelect.next()) {
                     ImportedProduct ip = new ImportedProduct();
+                    for(ImportedProduct x :  importReceipt.getListImportedProduct()){
+                        if(x.getId() == rsSelect.getInt("tblProductId")){
+                            ip.setName(x.getName());
+                            ip.setUnit(x.getUnit());
+                        }
+                    }
+                    ip.setImportedProductID(rsSelect.getInt("id"));
                     ip.setImportQuantity(rsSelect.getInt("importedQuantity"));
                     ip.setImportPrice(rsSelect.getDouble("importedPrice"));
                     ip.setId(rsSelect.getInt("tblProductId"));
@@ -82,13 +89,12 @@ public class ImportReceiptDAO extends DAO {
             }
             importReceipt.setListImportedProduct(list);
 
-            return importReceipt; // trả về đối tượng đầy đủ
-
+            return importReceipt; 
         } catch (SQLException e) {
             e.printStackTrace();
             if (connection != null) {
                 try {
-                    connection.rollback(); // rollback nếu lỗi
+                    connection.rollback(); 
                 } catch (SQLException ex) {
                     ex.printStackTrace();
                 }
@@ -108,62 +114,3 @@ public class ImportReceiptDAO extends DAO {
     
 }
 
-//        String sqlInsertReceipt = "INSERT INTO tblImportReceipt (totalPrice, date, tblWarehouseStaffId, tblSupplierId) VALUES (?, ?, ?, ?)";
-//        String sqlInsertProduct = "INSERT INTO tblImportedProduct (importedQuantity, importedPrice, tblImportReceiptId, tblProductId) VALUES (?, ?, ?, ?)";
-//
-//        
-//        PreparedStatement stmtReceipt = null;
-//        PreparedStatement stmtProduct = null;
-//
-//        try {
-//            connection.setAutoCommit(false); // bắt đầu transaction
-//
-//            // 1️⃣ Thêm phiếu nhập
-//            stmtReceipt = connection.prepareStatement(sqlInsertReceipt, Statement.RETURN_GENERATED_KEYS);
-//            stmtReceipt.setDouble(1, importReceipt.getTotalPrice());
-//            stmtReceipt.setDate(2, new Date(importReceipt.getDate().getTime()));
-//            stmtReceipt.setInt(3, Integer.parseInt(importReceipt.getWarehouseStaff().getId()));
-//            stmtReceipt.setInt(4, importReceipt.getSupplier().getId());
-//            stmtReceipt.executeUpdate();
-//
-//            // Lấy id phiếu nhập vừa tạo
-//            ResultSet rs = stmtReceipt.getGeneratedKeys();
-//            int importReceiptId = 0;
-//            if (rs.next()) {
-//                importReceiptId = rs.getInt(1);
-//            }
-//
-//            // 2️⃣ Thêm từng sản phẩm chi tiết
-//            stmtProduct = connection.prepareStatement(sqlInsertProduct);
-//            for (ImportedProduct ip : importReceipt.getListImportedProduct()) {
-//                stmtProduct.setInt(1, ip.getImportQuantity());
-//                stmtProduct.setDouble(2, ip.getImportPrice());
-//                stmtProduct.setInt(3, importReceiptId);
-//                stmtProduct.setInt(4, ip.getId());
-//                stmtProduct.addBatch();
-//            }
-//            stmtProduct.executeBatch();
-//
-//            connection.commit(); // xác nhận transaction
-//            return true;
-//
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//            if (connection != null) {
-//                try {
-//                    connection.rollback(); // rollback nếu lỗi
-//                } catch (SQLException ex) {
-//                    ex.printStackTrace();
-//                }
-//            }
-//            return false;
-//        } finally {
-//            try {
-//                if (stmtProduct != null) stmtProduct.close();
-//                if (stmtReceipt != null) stmtReceipt.close();
-//                if (connection != null) connection.close();
-//            } catch (SQLException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }

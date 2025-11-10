@@ -56,7 +56,7 @@ public class ImportReceiptServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-          RequestDispatcher rd = request.getRequestDispatcher("view/ImportReceiptFrm.jsp");
+        RequestDispatcher rd = request.getRequestDispatcher("view/ImportReceiptFrm.jsp");
         rd.forward(request, response);
     }
 

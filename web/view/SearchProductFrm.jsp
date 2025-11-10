@@ -535,7 +535,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h1><i class="fas fa-store"></i> E-Store Warehouse</h1>
+            <h1><i class="fas fa-store"></i>E-SuperMan Warehouse</h1>
             <p>Management System</p>
         </div>
         
@@ -810,6 +810,8 @@
 
             // Lấy danh sách sản phẩm đã chọn từ sessionStorage (client-side)
             const selectedProducts = JSON.parse(sessionStorage.getItem('selectedProducts') || '[]');
+            console.log('còn nè:', selectedProducts);
+
 
             // Kiểm tra xem sản phẩm đã có chưa
             const alreadyExists = selectedProducts.some(p => p.id === productId);

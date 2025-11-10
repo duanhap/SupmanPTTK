@@ -19,17 +19,69 @@ Author : ADMIN
         padding: 20px;
     }
 
-    .login-container {
+    .login-wrapper {
+        display: flex;
+        width: 100%;
+        max-width: 900px;
         background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 40px;
         border-radius: 20px;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        width: 100%;
-        max-width: 400px;
+        overflow: hidden;
+        min-height: 500px;
+    }
+
+    .system-info {
+        flex: 1;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
         position: relative;
         overflow: hidden;
+    }
+
+    .system-info::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="rgba(255,255,255,0.1)"><circle cx="20" cy="20" r="8"/><circle cx="80" cy="40" r="12"/><circle cx="40" cy="80" r="10"/><circle cx="70" cy="70" r="6"/></svg>');
+    }
+
+    .system-name {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .system-description {
+        font-size: 16px;
+        opacity: 0.9;
+        line-height: 1.6;
+        position: relative;
+        z-index: 2;
+    }
+
+    .system-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .login-container {
+        flex: 1;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
     }
 
     .login-container::before {
@@ -47,6 +99,7 @@ Author : ADMIN
         color: #2c3e50;
         font-size: 28px;
         font-weight: 600;
+        text-align: center;
     }
 
     .input-group {
@@ -159,25 +212,16 @@ Author : ADMIN
         }
     }
 
-    .login-container {
+    .login-wrapper {
         animation: fadeIn 0.6s ease-out;
     }
 
-    .logo {
-        margin-bottom: 20px;
-    }
-
-    .logo i {
-        font-size: 48px;
-        color: #3498db;
-        margin-bottom: 10px;
-    }
      /* ======= TOAST FLOATING ======= */
     .alert {
         position: fixed;
         top: 20px;
-        right: 20px; /* Góc trái toàn trang */
-        background: #fff; /* Nền trắng như bạn yêu cầu */
+        right: 20px;
+        background: #fff;
         border-radius: 10px;
         border-left: 5px solid;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -228,8 +272,23 @@ Author : ADMIN
         }
     }
 
-    .fade-out {
-        animation: fadeOut 0.4s forwards;
+    @media (max-width: 768px) {
+        .login-wrapper {
+            flex-direction: column;
+        }
+        
+        .system-info {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .system-icon {
+            font-size: 40px;
+        }
+        
+        .system-name {
+            font-size: 24px;
+        }
     }
 
 </style>
@@ -253,40 +312,77 @@ Author : ADMIN
     }, 3000);
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head> <body> <div class="login-container"> <div class="logo"> <i class="fas fa-store"></i></div> <h2>Welcome Back</h2>
-
-
-<!-- Form đăng nhập -->
-<form action="LoginServlet" method="post">
-    <div class="input-group">
-        <i class="fas fa-envelope"></i>
-        <input type="email" name="email" class="input-field" placeholder="Enter your email" required>
-    </div>
-    
-    <div class="input-group">
-        <i class="fas fa-lock"></i>
-        <input type="password" name="password" class="input-field" placeholder="Enter your password" required>
-    </div>
-
-    <div style="text-align: right; margin-bottom: 20px;">
-        <a href="#" class="forgot-password">Forgot password?</a>
+</head> <body> 
+<div class="login-wrapper">
+    <!-- Phần thông tin hệ thống bên trái -->
+    <div class="system-info">
+        <div class="system-icon">
+            <i class="fas fa-store"></i>
+        </div>
+        <div class="system-name">E-SuperMan</div>
+        <div class="system-description">
+            Electronics Store Management System<br>
+            Professional management solution for your electronics retail business
+        </div>
     </div>
 
-    <button type="submit" class="btn">
-        <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>
-        Sign In
-    </button>
-</form>
+    <!-- Phần đăng nhập bên phải -->
+    <div class="login-container">
+        <h2>Welcome Back</h2>
 
-<div class="divider">
-    <span>or</span>
+        <!-- Form đăng nhập -->
+        <form action="LoginServlet" method="post">
+            <div class="input-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" class="input-field" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" class="input-field" placeholder="Enter your password" required>
+            </div>
+
+            <div style="text-align: right; margin-bottom: 20px;">
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn">
+                <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>
+                Sign In
+            </button>
+        </form>
+
+        <div class="divider">
+            <span>or</span>
+        </div>
+
+        <!-- Nút chuyển sang đăng ký -->
+        <a href="RegisterServlet" class="btn link-btn">
+            <i class="fas fa-user-plus" style="margin-right: 8px;"></i>
+            Register as new member
+        </a>     
+    </div>
 </div>
 
-<!-- Nút chuyển sang đăng ký -->
-<a href="RegisterServlet" class="btn link-btn">
-    <i class="fas fa-user-plus" style="margin-right: 8px;"></i>
-    Register as new member
-</a>     
-</div><script> // Thêm hiệu ứng cho các trường input 
-    document.querySelectorAll('.input-field').forEach(input => { input.addEventListener('focus', function() { this.parentElement.querySelector('i').style.color = '#3498db'; }); input.addEventListener('blur', function() { this.parentElement.querySelector('i').style.color = '#7f8c8d'; }); }); // Hiệu ứng cho logo 
-    const logo = document.querySelector('.logo i'); setInterval(() => { logo.style.transform = 'translateY(-5px)'; setTimeout(() => { logo.style.transform = 'translateY(0)'; }, 500); }, 3000); </script></body> </html>
+<script> 
+    // Thêm hiệu ứng cho các trường input 
+    document.querySelectorAll('.input-field').forEach(input => { 
+        input.addEventListener('focus', function() { 
+            this.parentElement.querySelector('i').style.color = '#3498db'; 
+        }); 
+        input.addEventListener('blur', function() { 
+            this.parentElement.querySelector('i').style.color = '#7f8c8d'; 
+        }); 
+    }); 
+    
+    // Hiệu ứng cho icon hệ thống
+    const systemIcon = document.querySelector('.system-icon i'); 
+    setInterval(() => { 
+        systemIcon.style.transform = 'scale(1.1)'; 
+        setTimeout(() => { 
+            systemIcon.style.transform = 'scale(1)'; 
+        }, 500); 
+    }, 3000); 
+</script>
+</body> 
+</html>

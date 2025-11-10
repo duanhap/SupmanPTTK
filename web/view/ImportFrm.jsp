@@ -543,7 +543,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h1><i class="fas fa-store"></i> E-Store Warehouse</h1>
+            <h1><i class="fas fa-store"></i> E-SuperMan Warehouse</h1>
             <p>Management System</p>
         </div>
         
@@ -776,6 +776,8 @@
                 .then(data => {
                     if (data.success) {
                         alert('Import receipt created successfully!');
+                        sessionStorage.removeItem('selectedProducts');
+                        sessionStorage.removeItem('selectedSupplier');
                         window.location.href = 'ImportReceiptServlet';
                     } else {
                         alert('Error: ' + data.message);
@@ -891,27 +893,41 @@
             }
             
         }
-        function updateProductQuantity(productId, newQuantity) {
+       function updateProductQuantity(productId, newQuantity) {
             const product = importedProducts.find(p => p.id == productId);
-            console.log("change quantity:", newQuantity);
-
             if (product) {
-                 console.log("change quantity:", product);
                 product.inventoryQuantity = parseInt(newQuantity) || 1;
                 updateUI();
-            }
-        }
-         function updateProductPrice(productId, newPrice) {
-            const product = importedProducts.find(p => p.id == productId);
-            console.log("change price:", newPrice);
 
-            if (product) {
-                console.log("change product before:", product);
-                product.standardPrice = parseFloat(newPrice) || 1;
-                console.log("change product after:", product);
-                updateUI();
+                fetch('ImportServlet?action=updateProductQuantity', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: productId,
+                        newQuantity: product.inventoryQuantity
+                    })
+                });
             }
         }
+
+        function updateProductPrice(productId, newPrice) {
+            const product = importedProducts.find(p => p.id == productId);
+            if (product) {
+                const cleanPrice = parseFloat(newPrice.replace(/[^\d.-]/g, '')) || 1;
+                product.standardPrice = cleanPrice;
+                updateUI();
+
+                fetch('ImportServlet?action=updateProductPrice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: productId,
+                        newPrice: product.standardPrice
+                    })
+                });
+            }
+        }
+
 
         function formatCurrency(amount) {
             return new Intl.NumberFormat('vi-VN', {

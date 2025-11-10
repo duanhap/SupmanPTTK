@@ -446,7 +446,7 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h1><i class="fas fa-store"></i> E-Store Warehouse</h1>
+                <h1><i class="fas fa-store"></i> E-SuperMan Warehouse</h1>
                 <p>Management System</p>
             </div>
             
@@ -515,7 +515,7 @@
             <div class="content-area">
                 <div class="welcome-banner">
                     <h2>Welcome back, Warehouse Staff!</h2>
-                    <p>You have 12 pending orders to approve and 5 shipments to dispatch today.</p>
+<!--                    <p>You have 0 pending orders to approve and 0 shipments to dispatch today.</p>-->
                 </div>
                 
                 <div class="stats-cards">
@@ -524,7 +524,7 @@
                             <i class="fas fa-box-open"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>1,248</h3>
+                            <h3>0</h3>
                             <p>Total Products</p>
                         </div>
                     </div>
@@ -534,7 +534,7 @@
                             <i class="fas fa-clipboard-list"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>42</h3>
+                            <h3>0</h3>
                             <p>Pending Orders</p>
                         </div>
                     </div>
@@ -544,20 +544,20 @@
                             <i class="fas fa-truck"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>18</h3>
+                            <h3>0</h3>
                             <p>Suppliers</p>
                         </div>
                     </div>
                     
-                    <div class="stat-card card-4">
+<!--                    <div class="stat-card card-4">
                         <div class="stat-icon">
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>7</h3>
+                            <h3>0</h3>
                             <p>Low Stock Items</p>
                         </div>
-                    </div>
+                    </div>-->
                 </div>
                 
                 <div class="quick-actions">
@@ -596,7 +596,7 @@
                     </div>
                 </div>
                 
-                <div class="recent-activity">
+<!--                <div class="recent-activity">
                     <h3 class="section-title"><i class="fas fa-history"></i> Recent Activity</h3>
                     
                     <ul class="activity-list">
@@ -617,7 +617,7 @@
                             </div>
                             <div class="activity-content">
                                 <h4>New Stock Received</h4>
-                                <p>50 units of Product A received from Supplier XYZ</p>
+                                <p> units of Product A received from Supplier XYZ</p>
                             </div>
                             <div class="activity-time">09:45 AM</div>
                         </li>
@@ -644,7 +644,7 @@
                             <div class="activity-time">Yesterday</div>
                         </li>
                     </ul>
-                </div>
+                </div>-->
             </div>
         </div>
     </div>
@@ -675,7 +675,7 @@
                 // In a real application, this would redirect to logout endpoint
                 alert('Logging out...');
             }
-        });
+        }
     </script>
 </body>
 </html>

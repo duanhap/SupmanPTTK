@@ -1,6 +1,7 @@
 package model;
 
 public class ImportedProduct extends Product{
+    private int ImportedProductID;
     private int importQuantity;
     private double importPrice;
     public ImportedProduct() {
@@ -22,5 +23,14 @@ public class ImportedProduct extends Product{
     public void setImportPrice(double importPrice) {
         this.importPrice = importPrice;
     }
+
+    public int getImportedProductID() {
+        return ImportedProductID;
+    }
+
+    public void setImportedProductID(int ImportedProductID) {
+        this.ImportedProductID = ImportedProductID;
+    }
+    
     
 }

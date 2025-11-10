@@ -40,7 +40,7 @@ public class ProductDAO extends DAO{
             return false;
         }
     }
-        public boolean updateProduct(List<ImportedProduct> importedProducts) {
+        public boolean updateProducts(List<ImportedProduct> importedProducts) {
         String selectSql = "SELECT inventoryQuantity FROM tblProduct WHERE id = ?";
         String updateSql = "UPDATE tblProduct SET inventoryQuantity = ? WHERE id = ?";
 

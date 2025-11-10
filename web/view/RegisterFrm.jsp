@@ -235,7 +235,7 @@ Author : ADMIN
         <i class="fas fa-exclamation-circle"></i> ${error}
     </div>
 </c:if>
-</head> <body> <div class="register-container"> <div class="logo"> <i class="fas fa-store"></i> </div> <h2>Join Our E-Store</h2>
+</head> <body> <div class="register-container"> <div class="logo"> <i class="fas fa-store"></i> </div> <h2>Join Our E-SuperMan</h2>
 
 <script>
     // Tự động ẩn sau 3 giây

@@ -498,7 +498,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h1><i class="fas fa-store"></i> E-Store Warehouse</h1>
+            <h1><i class="fas fa-store"></i>E-SuperMan Warehouse</h1>
             <p>Management System</p>
         </div>
         

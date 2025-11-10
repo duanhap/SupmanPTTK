@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +50,8 @@ public class ImportServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         System.out.println("Chạy vào rồi");
+        HttpSession session = request.getSession();
+        session.removeAttribute("createdReceipt"); // Xóa session attribute
         RequestDispatcher rd = request.getRequestDispatcher("view/ImportFrm.jsp");
         rd.forward(request, response);
     }
@@ -120,6 +123,47 @@ public class ImportServlet extends HttpServlet {
                response.getWriter().write("{\"success\": true, \"message\": \"Product removed\"}");
                break;
             }
+            case "updateProductQuantity": {
+                JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+                int id = jsonObject.get("id").getAsInt();
+                int newQuantity = jsonObject.get("newQuantity").getAsInt();
+
+                List<Product> productList = (List<Product>) session.getAttribute("selectedProducts");
+                if (productList != null) {
+                    for (Product p : productList) {
+                        if (p.getId() == id) {
+                            p.setInventoryQuantity(newQuantity);
+                            break;
+                        }
+                    }
+                    session.setAttribute("selectedProducts", productList);
+                    response.getWriter().write("{\"success\": true, \"message\": \"Quantity updated\"}");
+                } else {
+                    response.getWriter().write("{\"success\": false, \"message\": \"No selectedProducts in session\"}");
+                }
+                break;
+            }
+
+            case "updateProductPrice": {
+                JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+                int id = jsonObject.get("id").getAsInt();
+                double newPrice = jsonObject.get("newPrice").getAsDouble();
+
+                List<Product> productList = (List<Product>) session.getAttribute("selectedProducts");
+                if (productList != null) {
+                    for (Product p : productList) {
+                        if (p.getId() == id) {
+                            p.setStandardPrice(newPrice);
+                            break;
+                        }
+                    }
+                    session.setAttribute("selectedProducts", productList);
+                    response.getWriter().write("{\"success\": true, \"message\": \"Price updated\"}");
+                } else {
+                    response.getWriter().write("{\"success\": false, \"message\": \"No selectedProducts in session\"}");
+                }
+                break;
+            }
             case "createImportReceipt": {
                 Supplier supplier = (Supplier) session.getAttribute("selectedSupplier");
                 List<Product> productList = (List<Product>) session.getAttribute("selectedProducts");
@@ -138,7 +182,7 @@ public class ImportServlet extends HttpServlet {
                     return;
                 }
 
-                // Nếu member chính là WarehouseStaff (hoặc có thể ép kiểu)
+     
                 WarehouseStaff staff =  new WarehouseStaff(new Staff(member)) ;
                 System.out.println(staff.toString());
   
@@ -164,7 +208,7 @@ public class ImportServlet extends HttpServlet {
                 if (savedReceipt != null) {
                     // ✅ Cập nhật lại số lượng sản phẩm trong kho
                     ProductDAO productDAO = new ProductDAO();
-                    boolean updated = productDAO.updateProduct(importedList);
+                    boolean updated = productDAO.updateProducts(importedList);
 
                     if (!updated) {
                         System.out.println("⚠️ Lỗi khi cập nhật số lượng kho!");
@@ -172,6 +216,12 @@ public class ImportServlet extends HttpServlet {
                     // Xóa session tạm sau khi tạo xong
                     session.removeAttribute("selectedSupplier");
                     session.removeAttribute("selectedProducts");
+                    List<Product> productList2 = (List<Product>) session.getAttribute("selectedProducts");
+                    if( productList2 == null){
+                         System.out.println("Chekck xem còn danh sách mặt hành ko  :  ko nha");
+                    }
+                   
+
 
                     // Lưu receipt mới tạo vào session (để sang trang hiển thị)
                     session.setAttribute("createdReceipt", savedReceipt);

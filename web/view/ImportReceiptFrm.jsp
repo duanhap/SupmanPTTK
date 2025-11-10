@@ -4,7 +4,27 @@
     Author     : ADMIN
 --%>
 
+<%@page import="java.util.Date"%>
+<%@page import="java.text.SimpleDateFormat"%>
+<%@page import="model.ImportReceipt"%>
+<%@page import="model.ImportedProduct"%>
+<%@page import="java.text.NumberFormat"%>
+<%@page import="java.util.Locale"%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    ImportReceipt importReceipt = (ImportReceipt) session.getAttribute("createdReceipt");
+    if (importReceipt == null) {
+        response.sendRedirect("ImportFrm.jsp");
+        return;
+    }
+    
+    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+    Date now = new Date();
+    
+    // Helper method to format currency
+    NumberFormat currencyFormatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,7 +60,7 @@
             min-height: 100vh;
         }
 
-        /* Sidebar Styles */
+        /* Sidebar Styles - GIỮ NGUYÊN */
         .sidebar {
             width: 250px;
             background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -89,16 +109,6 @@
             margin-right: 10px;
             color: var(--primary);
             font-weight: bold;
-        }
-
-        .user-details h3 {
-            font-size: 16px;
-            margin-bottom: 2px;
-        }
-
-        .user-details p {
-            font-size: 12px;
-            opacity: 0.8;
         }
 
         .nav-menu {
@@ -220,193 +230,202 @@
             flex: 1;
         }
 
-        .container {
+        /* PHIẾU NHẬP HÀNG MỚI - THIẾT KẾ ĐƠN GIẢN */
+        .receipt-container {
+            max-width: 100%;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
         }
 
-        .page-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 25px 30px;
-            position: relative;
+        .receipt-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #000;
         }
 
-        .page-header h2 {
+        .receipt-title {
             font-size: 24px;
-            margin-bottom: 8px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .receipt-subtitle {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .receipt-number {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .receipt-body {
+            padding: 0;
+        }
+
+        .receipt-section {
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .info-item {
             display: flex;
-            align-items: center;
+            margin-bottom: 8px;
         }
 
-        .page-header h2 i {
-            margin-right: 12px;
+        .info-label {
+            font-weight: bold;
+            min-width: 150px;
         }
 
-        .page-header p {
-            opacity: 0.9;
+        .info-value {
+            flex: 1;
+        }
+
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
             font-size: 14px;
         }
 
-        .receipt-content {
-            padding: 30px;
+        .products-table th {
+            background: #f0f0f0;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #000;
         }
 
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            border: 1px solid #e9ecef;
-            border-radius: 10px;
-            background: #fafbfc;
+        .products-table td {
+            padding: 8px;
+            border: 1px solid #000;
+            text-align: center;
         }
 
-        .section h3 {
-            color: var(--primary-dark);
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--primary-light);
-            display: flex;
-            align-items: center;
-        }
-
-        .section h3 i {
-            margin-right: 10px;
-        }
-
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .info-table td {
-            padding: 8px 0;
-            border: none;
-        }
-
-        .info-table td:first-child {
-            font-weight: 600;
-            color: var(--dark);
-            width: 150px;
-        }
-
-        .info-table td:last-child {
-            color: var(--secondary);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        th, td {
-            padding: 12px 15px;
+        .text-left {
             text-align: left;
-            border-bottom: 1px solid #e9ecef;
         }
 
-        th {
-            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
-            color: white;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 0.5px;
+        .text-right {
+            text-align: right;
         }
 
-        tr:hover {
-            background-color: #f8f9fa;
+        .text-center {
+            text-align: center;
         }
 
-        .total-section {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
+        .totals-section {
+            margin-top: 15px;
+            border: 1px solid #000;
+            padding: 10px;
         }
 
         .total-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            padding: 8px 0;
-            border-bottom: 1px solid #dee2e6;
+            padding: 5px 0;
         }
 
         .total-final {
-            font-size: 18px;
             font-weight: bold;
-            color: var(--primary-dark);
-            border-bottom: none;
-            margin-top: 10px;
-            padding-top: 15px;
-            border-top: 2px solid var(--primary);
+            border-top: 1px solid #000;
+            margin-top: 5px;
+            padding-top: 8px;
         }
 
-        .price {
-            font-weight: 600;
-            color: var(--success);
+        .signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
         }
 
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            margin: 5px;
+        .signature-box {
+            text-align: center;
         }
 
-        .btn i {
-            margin-right: 8px;
+        .signature-line {
+            border-bottom: 1px solid #000;
+            padding: 30px 0 15px 0;
+            margin-bottom: 5px;
         }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, var(--gray) 0%, #5d6d7e 100%);
-            color: white;
+        .signature-label {
+            font-weight: bold;
+            font-size: 14px;
         }
 
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(127, 140, 141, 0.3);
+        .signature-name {
+            margin-top: 5px;
+            font-weight: bold;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, var(--success) 0%, #219653 100%);
-            color: white;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        .receipt-footer {
+            padding: 10px 20px;
+            text-align: center;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
         }
 
         .action-buttons {
             text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e9ecef;
+            padding: 15px;
+            background: #f9f9f9;
+            border-top: 1px solid #ddd;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            margin: 0 5px;
+            font-size: 14px;
+            background: white;
+            color: #000;
+        }
+
+        .btn i {
+            margin-right: 5px;
+        }
+
+        .btn:hover {
+            background: #f0f0f0;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: 1px solid var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
         }
 
         /* Print Styles */
@@ -424,40 +443,13 @@
                 width: 100%;
                 padding: 0;
             }
-            .container {
+            .receipt-container {
                 box-shadow: none;
-                border-radius: 0;
+                border: none;
+                margin: 0;
             }
             .action-buttons, .top-bar, .sidebar {
                 display: none !important;
-            }
-            .section {
-                break-inside: avoid;
-            }
-        }
-
-        .print-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--success);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            display: none;
-            z-index: 1000;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
             }
         }
 
@@ -473,9 +465,12 @@
         }
 
         @media (max-width: 768px) {
-            table {
-                display: block;
-                overflow-x: auto;
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .signatures {
+                grid-template-columns: 1fr;
             }
             
             .action-buttons {
@@ -487,20 +482,19 @@
                 width: 100%;
                 margin: 5px 0;
             }
+            
+            .products-table {
+                font-size: 12px;
+            }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Print Notification -->
-    <div id="printNotification" class="print-notification">
-        <i class="fas fa-print"></i> Preparing document for printing...
-    </div>
-
-    <!-- Sidebar -->
+    <!-- Sidebar - GIỮ NGUYÊN -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h1><i class="fas fa-store"></i> E-Store Warehouse</h1>
+            <h1><i class="fas fa-store"></i> E-SuperMan Warehouse</h1>
             <p>Management System</p>
         </div>
         
@@ -567,203 +561,195 @@
         </div>
         
         <div class="content-area">
-            <div class="container">
-                <div class="page-header">
-                    <h2><i class="fas fa-file-invoice"></i> Import Receipt</h2>
-                    <p>Receipt details and summary of imported products</p>
+            <!-- PHIẾU NHẬP HÀNG MỚI -->
+            <div class="receipt-container">
+                <!-- Receipt Header -->
+                <div class="receipt-header">
+                    <div class="receipt-number">Mã phiếu: R<%= String.format("%04d", importReceipt.getId()) %></div>
+                    <div class="receipt-title">PHIẾU NHẬP HÀNG</div>
+                    <div class="receipt-subtitle">IMPORT RECEIPT</div>
                 </div>
-                
-                <div class="receipt-content">
-                    <!-- Receipt Information -->
-                    <div class="section">
-                        <h3><i class="fas fa-receipt"></i> Receipt Information</h3>
-                        <table class="info-table">
-                            <tr>
-                                <td>Receipt ID:</td>
-                                <td><strong>R0011</strong></td>
-                            </tr>
-                            <tr>
-                                <td>Date Created:</td>
-                                <td>30/09/2025</td>
-                            </tr>
-                            <tr>
-                                <td>Time:</td>
-                                <td>14:30:45</td>
-                            </tr>
-                            <tr>
-                                <td>Status:</td>
-                                <td><span style="color: var(--success); font-weight: 600;">Completed</span></td>
-                            </tr>
-                        </table>
+
+                <!-- Receipt Body -->
+                <div class="receipt-body">
+                    <!-- Basic Information -->
+                    <div class="receipt-section">
+                        <div class="section-title">THÔNG TIN PHIẾU NHẬP</div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Ngày lập:</span>
+                                <span class="info-value"><%= importReceipt.getDate() != null ? dateFormat.format(importReceipt.getDate()) : dateFormat.format(now) %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Giờ lập:</span>
+                                <span class="info-value"><%= timeFormat.format(now) %></span>
+                            </div>
+<!--                            <div class="info-item">
+                                <span class="info-label">Mã nhà cung cấp:</span>
+                                <span class="info-value">S<%= String.format("%04d", importReceipt.getSupplier().getId()) %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Mã nhân viên:</span>
+                                <span class="info-value"><%= importReceipt.getWarehouseStaff().getId() %></span>
+                            </div>-->
+                        </div>
                     </div>
 
                     <!-- Supplier Information -->
-                    <div class="section">
-                        <h3><i class="fas fa-truck"></i> Supplier Information</h3>
-                        <table class="info-table">
-                            <tr>
-                                <td>Supplier ID:</td>
-                                <td><strong>S001</strong></td>
-                            </tr>
-                            <tr>
-                                <td>Name:</td>
-                                <td>ABC Supplies</td>
-                            </tr>
-                            <tr>
-                                <td>Phone:</td>
-                                <td>0123456789</td>
-                            </tr>
-                            <tr>
-                                <td>Email:</td>
-                                <td>abc@supplies.com</td>
-                            </tr>
-                            <tr>
-                                <td>Address:</td>
-                                <td>123 Main Street, Hanoi, Vietnam</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <!-- Imported Products -->
-                    <div class="section">
-                        <h3><i class="fas fa-boxes"></i> Imported Products</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Product ID</th>
-                                    <th>Product Name</th>
-                                    <th>Unit</th>
-                                    <th>Quantity</th>
-                                    <th>Unit Price</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>P001</strong></td>
-                                    <td>iPhone 17 Pro Max</td>
-                                    <td>Piece</td>
-                                    <td>10</td>
-                                    <td class="price">33,000,000 ₫</td>
-                                    <td class="price">330,000,000 ₫</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>P002</strong></td>
-                                    <td>iPhone 16 Pro Max</td>
-                                    <td>Piece</td>
-                                    <td>10</td>
-                                    <td class="price">30,000,000 ₫</td>
-                                    <td class="price">300,000,000 ₫</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>P003</strong></td>
-                                    <td>Samsung Galaxy S24 Ultra</td>
-                                    <td>Piece</td>
-                                    <td>5</td>
-                                    <td class="price">28,000,000 ₫</td>
-                                    <td class="price">140,000,000 ₫</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
-                        <!-- Total Calculation -->
-                        <div class="total-section">
-                            <div class="total-row">
-                                <span>Subtotal:</span>
-                                <span class="price">770,000,000 ₫</span>
+                    <div class="receipt-section">
+                        <div class="section-title">THÔNG TIN NHÀ CUNG CẤP</div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Tên NCC:</span>
+                                <span class="info-value"><%= importReceipt.getSupplier().getName() %></span>
                             </div>
-                            <div class="total-row">
-                                <span>Tax (10%):</span>
-                                <span class="price">77,000,000 ₫</span>
+                            <div class="info-item">
+                                <span class="info-label">Điện thoại:</span>
+                                <span class="info-value"><%= importReceipt.getSupplier().getPhone() != null ? importReceipt.getSupplier().getPhone() : "N/A" %></span>
                             </div>
-                            <div class="total-row total-final">
-                                <span>Grand Total:</span>
-                                <span class="price">847,000,000 ₫</span>
+                            <div class="info-item">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value"><%= importReceipt.getSupplier().getEmail() != null ? importReceipt.getSupplier().getEmail() : "N/A" %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Địa chỉ:</span>
+                                <span class="info-value"><%= importReceipt.getSupplier().getAddress() != null ? importReceipt.getSupplier().getAddress() : "N/A" %></span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Warehouse Staff Information -->
-                    <div class="section">
-                        <h3><i class="fas fa-user-tie"></i> Warehouse Staff</h3>
-                        <table class="info-table">
-                            <tr>
-                                <td>Staff ID:</td>
-                                <td><strong>WS001</strong></td>
-                            </tr>
-                            <tr>
-                                <td>Name:</td>
-                                <td>Nguyễn Văn A</td>
-                            </tr>
-                            <tr>
-                                <td>Phone:</td>
-                                <td>0987654321</td>
-                            </tr>
-                            <tr>
-                                <td>Email:</td>
-                                <td>nguyenvana@warehouse.com</td>
-                            </tr>
-                            <tr>
-                                <td>Department:</td>
-                                <td>Warehouse Management</td>
-                            </tr>
-                        </table>
+                    <!-- Imported Products -->
+                    <div class="receipt-section">
+                        <div class="section-title">DANH SÁCH SẢN PHẨM NHẬP</div>
+                        <% 
+                            if (importReceipt.getListImportedProduct() != null && !importReceipt.getListImportedProduct().isEmpty()) { 
+                                int stt = 1;
+                                double totalAmount = 0;
+                        %>
+                            <table class="products-table">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">STT</th>
+                                        <th width="15%">Mã SP</th>
+                                        <th class="text-left">Tên sản phẩm</th>
+                                        <th width="10%">ĐVT</th>
+                                        <th width="10%">Số lượng</th>
+                                        <th width="15%">Đơn giá</th>
+                                        <th width="15%">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% 
+                                        for (ImportedProduct product : importReceipt.getListImportedProduct()) { 
+                                            double itemTotal = product.getImportPrice() * product.getImportQuantity();
+                                            totalAmount += itemTotal;
+                                    %>
+                                        <tr>
+                                            <td><%= stt++ %></td>
+                                            <td>IP<%= String.format("%04d", product.getImportedProductID()) %></td>
+                                            <td class="text-left"><%= product.getName() %></td>
+                                            <td><%= product.getUnit() != null ? product.getUnit() : "Cái" %></td>
+                                            <td><%= product.getImportQuantity() %></td>
+                                            <td class="text-right"><%= currencyFormatter.format(product.getImportPrice()) %> ₫</td>
+                                            <td class="text-right"><%= currencyFormatter.format(itemTotal) %> ₫</td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                            
+                            <!-- Totals -->
+                            <div class="totals-section">
+                                <div class="total-row">
+                                    <span>Tổng tiền hàng:</span>
+                                    <span><%= currencyFormatter.format(totalAmount) %> ₫</span>
+                                </div>
+                                <div class="total-row">
+                                    <span>Thuế VAT (0%):</span>
+                                    <span><%= currencyFormatter.format(0) %> ₫</span>
+                                </div>
+                                <div class="total-row total-final">
+                                    <span>TỔNG CỘNG:</span>
+                                    <span><%= currencyFormatter.format(totalAmount) %> ₫</span>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <p style="text-align: center; padding: 20px;">Không có sản phẩm nào được nhập</p>
+                        <% } %>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <a href="ImportFrm.jsp" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Back to Import
-                        </a>
-                        <button type="button" class="btn btn-primary" onclick="printReceipt()">
-                            <i class="fas fa-print"></i> Print Receipt
-                        </button>
-                        <button type="button" class="btn btn-success" onclick="saveAsPDF()">
-                            <i class="fas fa-file-pdf"></i> Save as PDF
-                        </button>
+                    <!-- Staff Information -->
+                    <div class="receipt-section">
+                        <div class="section-title">THÔNG TIN NHÂN VIÊN</div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Tên nhân viên:</span>
+                                <span class="info-value"><%= importReceipt.getWarehouseStaff().getName() %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Điện thoại:</span>
+                                <span class="info-value"><%= importReceipt.getWarehouseStaff().getPhone() != null ? importReceipt.getWarehouseStaff().getPhone() : "N/A" %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value"><%= importReceipt.getWarehouseStaff().getEmail() != null ? importReceipt.getWarehouseStaff().getEmail() : "N/A" %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Phòng ban:</span>
+                                <span class="info-value">Quản lý kho</span>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Signatures -->
+                    <div class="receipt-section">
+                        <div class="signatures">
+                            <div class="signature-box">
+                                <div class="signature-line"></div>
+                                <div class="signature-label">NGƯỜI LẬP PHIẾU</div>
+                                <div class="signature-name"><%= importReceipt.getWarehouseStaff().getName() %></div>
+                                <div class="signature-label">(Ký, ghi rõ họ tên)</div>
+                            </div>
+                            <div class="signature-box">
+                                <div class="signature-line"></div>
+                                <div class="signature-label">NHÀ CUNG CẤP</div>
+                                <div class="signature-name"><%= importReceipt.getSupplier().getName() %></div>
+                                <div class="signature-label">(Ký, ghi rõ họ tên)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="receipt-footer">
+                    <p>Hệ thống quản lý siêu thị điện tử E-SuperMan | Email: support@esuperman.com | Hotline: 1900 1234</p>
+                    <p>Phiếu này có giá trị như một chứng từ nhập kho hợp lệ</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="ImportServlet" class="btn">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="printReceipt()">
+                        <i class="fas fa-print"></i> In phiếu
+                    </button>
+                    <button type="button" class="btn" onclick="saveAsPDF()">
+                        <i class="fas fa-file-pdf"></i> Lưu PDF
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Enhanced print function with notification
+        // Print function
         function printReceipt() {
-            // Show printing notification
-            const notification = document.getElementById('printNotification');
-            notification.style.display = 'block';
-            notification.innerHTML = '<i class="fas fa-print"></i> Preparing document for printing...';
-            
-            // Wait a moment for the notification to be visible
-            setTimeout(() => {
-                // Print the document
-                window.print();
-                
-                // Update notification after print dialog closes
-                setTimeout(() => {
-                    notification.innerHTML = '<i class="fas fa-check"></i> Print completed successfully!';
-                    setTimeout(() => {
-                        notification.style.display = 'none';
-                    }, 3000);
-                }, 500);
-            }, 1000);
+            window.print();
         }
 
-        // PDF save function (simulated)
+        // PDF save function
         function saveAsPDF() {
-            const notification = document.getElementById('printNotification');
-            notification.style.display = 'block';
-            notification.innerHTML = '<i class="fas fa-file-pdf"></i> Generating PDF document...';
-            
-            setTimeout(() => {
-                notification.innerHTML = '<i class="fas fa-check"></i> PDF saved successfully!';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                // In a real application, this would trigger a PDF download
-                    alert('PDF download would start in a real application');
-                }, 2000);
-            }, 1500);
+            alert('Tính năng lưu PDF sẽ được triển khai sau');
         }
 
         // Navigation functionality
@@ -787,14 +773,6 @@
                 // In a real application, this would redirect to logout endpoint
             }
         });
-
-        // Auto-hide print notification after 5 seconds if still visible
-        setInterval(() => {
-            const notification = document.getElementById('printNotification');
-            if (notification.style.display === 'block') {
-                notification.style.display = 'none';
-            }
-        }, 5000);
     </script>
 </body>
 </html>
