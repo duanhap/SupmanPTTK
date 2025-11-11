@@ -595,7 +595,7 @@
     
     <!-- Main Content -->
     <div class="main-content">
-        <div class="top-bar">
+<!--        <div class="top-bar">
             <div class="search-bar">
                 <i class="fas fa-search"></i>
                 <input type="text" placeholder="Search products, orders, suppliers...">
@@ -611,7 +611,7 @@
                     Logout
                 </button>
             </div>
-        </div>
+        </div>-->
         
         <div class="content-area">
             <div class="container">

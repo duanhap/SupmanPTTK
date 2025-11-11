@@ -1,3 +1,4 @@
+
 <%-- 
     Document   : SearchSupplierFrm.jsp
     Created on : Sep 30, 2025, 6:48:32 PM
@@ -460,6 +461,71 @@
             margin-top: 5px;
         }
 
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px 0;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .pagination-btn {
+            padding: 8px 15px;
+            border: 1px solid #e1e5ee;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-numbers {
+            display: flex;
+            gap: 5px;
+        }
+
+        .page-number {
+            padding: 8px 12px;
+            border: 1px solid #e1e5ee;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .page-number.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .page-number:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
         @media (max-width: 992px) {
             body {
                 flex-direction: column;
@@ -489,6 +555,16 @@
             table {
                 display: block;
                 overflow-x: auto;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .pagination-controls {
+                justify-content: center;
             }
         }
     </style>
@@ -546,7 +622,7 @@
     
     <!-- Main Content -->
     <div class="main-content">
-        <div class="top-bar">
+<!--        <div class="top-bar">
             <div class="search-bar">
                 <i class="fas fa-search"></i>
                 <input type="text" placeholder="Search suppliers, products...">
@@ -562,7 +638,7 @@
                     Logout
                 </button>
             </div>
-        </div>
+        </div>-->
         
         <div class="content-area">
             <div class="container">
@@ -574,18 +650,17 @@
                 <div class="form-content">
                     <!-- Search Section -->
                     <div class="search-section">
-                            <form id="searchForm" class="search-form" action="SearchSupplierServlet" method="get">
-                                <div class="form-group">
-                                    <label for="searchTerm">Search Suppliers</label>
-                                    <input type="text" id="searchTerm" name="keyword" class="form-control"
-                                           placeholder="Enter supplier name or ID..."
-                                           value="${keyword != null ? keyword : ''}">
-                                </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search"></i> Search
-                                </button>
-                            </form>
-
+                        <form id="searchForm" class="search-form" action="SearchSupplierServlet" method="get">
+                            <div class="form-group">
+                                <label for="searchTerm">Search Suppliers</label>
+                                <input type="text" id="searchTerm" name="keyword" class="form-control"
+                                       placeholder="Enter supplier name or ID..."
+                                       value="${keyword != null ? keyword : ''}">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </form>
                         
                         <div class="action-buttons">
                             <a href="AddSupplierFrm.jsp" class="btn btn-success">
@@ -599,7 +674,8 @@
                     
                     <!-- Results Section -->
                     <div id="resultsSection">
-                        <div class="results-count" id="resultsCount">Showing all suppliers</div>
+                        <!-- Pagination Info will be moved here -->
+                        <div class="pagination-info" id="paginationInfo"></div>
                                               
                         <table id="suppliersTable">
                             <thead>
@@ -614,9 +690,22 @@
                             </thead>
                             <tbody id="suppliersTableBody">
                                 <!-- Supplier data will be populated here -->
-                      
                             </tbody>
                         </table>
+                        
+                        <!-- Pagination Controls -->
+                        <div class="pagination-container">
+                            <div class="pagination-info" id="resultsInfo"></div>
+                            <div class="pagination-controls">
+                                <button class="pagination-btn" id="prevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </button>
+                                <div class="page-numbers" id="pageNumbers"></div>
+                                <button class="pagination-btn" id="nextPage" disabled>
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
                         
                         <!-- Empty State -->
                         <div id="emptyState" class="empty-state" style="display: none;">
@@ -631,117 +720,189 @@
     </div>
 
     <script>
-
         // Khai báo suppliers với xử lý lỗi
-     let suppliers = [];
-     let filteredSuppliers = [];
+        let suppliers = [];
+        let filteredSuppliers = [];
+        let currentPage = 1;
+        const itemsPerPage = 6;
 
-     try {
-         <c:if test="${not empty suppliers}">
-         suppliers = [
-             <c:forEach var="s" items="${suppliers}" varStatus="status">
-             {
-                 id: ${s.id},
-                 name: "${fn:escapeXml(s.name)}",
-                 address: "${fn:escapeXml(s.address)}",
-                 phone: "${fn:escapeXml(s.phone)}",
-                 email: "${fn:escapeXml(s.email)}",
-                 description: "${fn:escapeXml(s.description)}"
-             }<c:if test="${!status.last}">,</c:if>
-             </c:forEach>
-         ];
-         </c:if>
-         <c:if test="${empty suppliers}">
-         suppliers = [];
-         </c:if>
+        try {
+            <c:if test="${not empty suppliers}">
+            suppliers = [
+                <c:forEach var="s" items="${suppliers}" varStatus="status">
+                {
+                    id: ${s.id},
+                    name: "${fn:escapeXml(s.name)}",
+                    address: "${fn:escapeXml(s.address)}",
+                    phone: "${fn:escapeXml(s.phone)}",
+                    email: "${fn:escapeXml(s.email)}",
+                    description: "${fn:escapeXml(s.description)}"
+                }<c:if test="${!status.last}">,</c:if>
+                </c:forEach>
+            ];
+            </c:if>
+            <c:if test="${empty suppliers}">
+            suppliers = [];
+            </c:if>
 
-         console.log('Suppliers loaded:', suppliers);
-         filteredSuppliers = [...suppliers];
-     } catch (error) {
-         console.error('Error initializing suppliers:', error);
-         suppliers = [];
-         filteredSuppliers = [];
-     }
+            console.log('Suppliers loaded:', suppliers);
+            filteredSuppliers = [...suppliers];
+        } catch (error) {
+            console.error('Error initializing suppliers:', error);
+            suppliers = [];
+            filteredSuppliers = [];
+        }
 
-     document.addEventListener('DOMContentLoaded', function() {
-         console.log('DOM ready - Suppliers:', suppliers);
-         console.log('DOM ready - Filtered:', filteredSuppliers);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM ready - Suppliers:', suppliers);
+            console.log('DOM ready - Filtered:', filteredSuppliers);
 
-         // Hiển thị dữ liệu ngay lập tức
-         displaySuppliers();
+            // Hiển thị dữ liệu ngay lập tức
+            displaySuppliers();
 
+            // Thêm event listeners cho phân trang
+            document.getElementById('prevPage').addEventListener('click', goToPreviousPage);
+            document.getElementById('nextPage').addEventListener('click', goToNextPage);
+        });
 
-     });
+        function displaySuppliers() {
+            const tableBody = document.getElementById('suppliersTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const resultsInfo = document.getElementById('resultsInfo');
+            const table = document.getElementById('suppliersTable');
+            const paginationContainer = document.querySelector('.pagination-container');
 
- 
+            const totalItems = filteredSuppliers.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-     function displaySuppliers() {
-         const tableBody = document.getElementById('suppliersTableBody');
-         const emptyState = document.getElementById('emptyState');
-         const resultsCount = document.getElementById('resultsCount');
-         const table = document.getElementById('suppliersTable');
+            // Đảm bảo currentPage hợp lệ
+            if (currentPage > totalPages) {
+                currentPage = totalPages || 1;
+            }
 
-         console.log('Displaying suppliers count:', filteredSuppliers.length);
+            // Tính toán items cho trang hiện tại
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const currentItems = filteredSuppliers.slice(startIndex, endIndex);
 
-         resultsCount.textContent = `Showing \${filteredSuppliers.length} supplier\${filteredSuppliers.length !== 1 ? 's' : ''}`;
+            console.log('Displaying suppliers:', {
+                totalItems,
+                totalPages,
+                currentPage,
+                startIndex,
+                endIndex,
+                currentItemsCount: currentItems.length
+            });
 
-         if (filteredSuppliers.length === 0) {
-             tableBody.innerHTML = '';
-             table.style.display = 'none';
-             emptyState.style.display = 'block';
-             return;
-         }
+            // Cập nhật thông tin kết quả
+            if (totalItems === 0) {
+                resultsInfo.textContent = 'No suppliers found';
+                table.style.display = 'none';
+                paginationContainer.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
 
-         table.style.display = 'table';
-         emptyState.style.display = 'none';
+            resultsInfo.textContent = 'Showing ' + (startIndex + 1) + '-' + endIndex + ' of ' + totalItems + ' supplier' + (totalItems !== 1 ? 's' : '');
+            table.style.display = 'table';
+            paginationContainer.style.display = 'flex';
+            emptyState.style.display = 'none';
 
-         tableBody.innerHTML = '';
+            // Hiển thị dữ liệu
+            tableBody.innerHTML = '';
+            currentItems.forEach(supplier => {
+                console.log('Rendering supplier:', supplier);
+                const initials = supplier.name ? supplier.name.split(' ').map(function(w) { return w[0]; }).join('').toUpperCase() : 'NA';
 
-         filteredSuppliers.forEach(supplier => {
-             console.log('Rendering supplier:', supplier);
-             const id = "S"+ supplier.id.toString().padStart(4, '0')
-             const row = document.createElement('tr');
-             const initials = supplier.name ? supplier.name.split(' ').map(w => w[0]).join('').toUpperCase() : 'NA';
+                const row = document.createElement('tr');
+                row.innerHTML = 
+                    '<td>' +
+                        '<strong>ID: S' + supplier.id.toString().padStart(4, '0') + '</strong>' +
+                    '</td>' +
+                    '<td>' +
+                        '<div class="supplier-info">' +
+                            '<div class="supplier-avatar">' + initials.substring(0, 2) + '</div>' +
+                            '<div class="supplier-details">' +
+                                '<h4>' + supplier.name + '</h4>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td>' +
+                        '<div class="contact-info">' +
+                            '<span class="phone-number">' + supplier.phone + '</span>' +
+                            '<span class="email-address">' + supplier.email + '</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td>' + supplier.address + '</td>' +
+                    '<td>' +
+                        '<div class="description-text">' +
+                            (supplier.description || 'No description available') +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="action-cell">' +
+                        '<button class="btn btn-primary btn-sm" onclick="selectSupplier(' + supplier.id + ')">' +
+                            '<i class="fas fa-check"></i> Choose' +
+                        '</button>' +
+                    '</td>';
 
-             row.innerHTML = `
-                    <td>
-                        <strong>ID: S\${supplier.id.toString().padStart(4, '0')}</strong>
-                    </td>
-                    <td>
-                        <div class="supplier-info">
-                            <div class="supplier-avatar">\${initials.substring(0, 2)}</div>
-                            <div class="supplier-details">
-                                <h4>\${supplier.name}</h4>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="contact-info">
-                            <span class="phone-number">\${supplier.phone}</span>
-                            <span class="email-address">\${supplier.email}</span>
-                        </div>
-                    </td>
-                    <td>\${supplier.address}</td>
-                    <td>
-                        <div class="description-text">
-                            \${supplier.description || 'No description available'}
-                        </div>
-                    </td>
-                    <td class="action-cell">
-                        <button class="btn btn-primary btn-sm" onclick="selectSupplier(\${supplier.id})">
-                            <i class="fas fa-check"></i> Choose
-                        </button>
-                    </td>
-                `;
-             
-             tableBody.appendChild(row);
-         });
-     }
+                tableBody.appendChild(row);
+            });
+
+            // Cập nhật điều khiển phân trang
+            updatePaginationControls(totalPages);
+        }
+
+        function updatePaginationControls(totalPages) {
+            const prevButton = document.getElementById('prevPage');
+            const nextButton = document.getElementById('nextPage');
+            const pageNumbersContainer = document.getElementById('pageNumbers');
+
+            // Cập nhật nút Previous/Next
+            prevButton.disabled = currentPage === 1;
+            nextButton.disabled = currentPage === totalPages || totalPages === 0;
+
+            // Tạo số trang
+            pageNumbersContainer.innerHTML = '';
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            // Điều chỉnh nếu gần cuối
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.className = 'page-number' + (i === currentPage ? ' active' : '');
+                pageButton.textContent = i;
+                pageButton.addEventListener('click', function() {
+                    currentPage = i;
+                    displaySuppliers();
+                });
+                pageNumbersContainer.appendChild(pageButton);
+            }
+        }
+
+        function goToPreviousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                displaySuppliers();
+            }
+        }
+
+        function goToNextPage() {
+            const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                displaySuppliers();
+            }
+        }
 
         function selectSupplier(supplierId) {
             console.log('Selected supplier ID:', supplierId);
             const supplier = suppliers.find(s => s.id === supplierId);
-            if (supplier && confirm(`Select \${supplier.name} as your supplier?`)) {
+            if (supplier && confirm(`Select ${supplier.name} as your supplier?`)) {
                 fetch('ImportServlet?action=selectSupplier', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -759,22 +920,22 @@
             }
         }
 
-         // Navigation functionality
-         document.querySelectorAll('.nav-item').forEach(item => {
-             item.addEventListener('click', function() {
-                 document.querySelectorAll('.nav-item').forEach(nav => {
-                     nav.classList.remove('active');
-                 });
-                 this.classList.add('active');
-             });
-         });
+        // Navigation functionality
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
 
-         // Logout functionality
-         document.querySelector('.logout-btn').addEventListener('click', function() {
-             if (confirm('Are you sure you want to logout?')) {
-                 alert('Logging out...');
-             }
-         });
+        // Logout functionality
+        document.querySelector('.logout-btn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                alert('Logging out...');
+            }
+        });
     </script>
 </body>
 </html>

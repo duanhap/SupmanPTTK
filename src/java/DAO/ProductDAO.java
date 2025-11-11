@@ -77,32 +77,36 @@ public class ProductDAO extends DAO{
     }
 
     
-    public List<Product> getProductByName(String name){
-        List<Product> products = new ArrayList<>();
-        String sql = "SELECT * FROM tblProduct WHERE name LIKE ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+    public List<Product> getProductByName(String name) {
+       List<Product> products = new ArrayList<>();
+       String sql = "SELECT * FROM tblProduct WHERE (? = '' OR name LIKE ?)";
 
-            stmt.setString(1, "%" + name + "%");
-            ResultSet rs = stmt.executeQuery();
+       try (PreparedStatement stmt = connection.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                Product p = new Product();
-                p.setId(rs.getInt("id"));
-                p.setName(rs.getString("name"));
-                p.setDescription(rs.getString("description"));
-                p.setUnit(rs.getString("unit"));
-                p.setInventoryQuantity(rs.getInt("inventoryQuantity"));
-                p.setType(rs.getString("type"));
-                p.setStandardPrice(rs.getDouble("standardPrice"));
-                products.add(p);
-            }
+           if (name == null) name = "";  // tránh null pointer
+           stmt.setString(1, name);
+           stmt.setString(2, "%" + name + "%");
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+           ResultSet rs = stmt.executeQuery();
 
-        return products;
+           while (rs.next()) {
+               Product p = new Product();
+               p.setId(rs.getInt("id"));
+               p.setName(rs.getString("name"));
+               p.setDescription(rs.getString("description"));
+               p.setUnit(rs.getString("unit"));
+               p.setInventoryQuantity(rs.getInt("inventoryQuantity"));
+               p.setType(rs.getString("type"));
+               p.setStandardPrice(rs.getDouble("standardPrice"));
+               products.add(p);
+           }
 
-    }
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+
+       return products;
+   }
+
     
 }

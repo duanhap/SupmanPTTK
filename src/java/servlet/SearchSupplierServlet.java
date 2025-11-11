@@ -72,6 +72,8 @@ public class SearchSupplierServlet extends HttpServlet {
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             suppliers = supplierDAO.getSuplierByname(keyword);
+        }else{
+            suppliers = supplierDAO.getSuplierByname("");
         }
 
         // Gửi danh sách sang JSP hiển thị

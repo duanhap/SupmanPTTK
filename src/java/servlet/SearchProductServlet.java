@@ -74,6 +74,9 @@ public class SearchProductServlet extends HttpServlet {
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             products = productDAO.getProductByName(keyword);
+        }else{
+            products = productDAO.getProductByName("");
+
         }
 
         // Gửi danh sách sang JSP hiển thị

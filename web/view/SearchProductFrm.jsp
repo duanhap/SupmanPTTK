@@ -1,3 +1,4 @@
+
 <%-- 
     Document   : SearchProductFrm.jsp
     Created on : Sep 30, 2025, 7:04:01 PM
@@ -493,6 +494,71 @@
             background: white;
         }
 
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px 0;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .pagination-btn {
+            padding: 8px 15px;
+            border: 1px solid #e1e5ee;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-numbers {
+            display: flex;
+            gap: 5px;
+        }
+
+        .page-number {
+            padding: 8px 12px;
+            border: 1px solid #e1e5ee;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .page-number.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .page-number:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
         @media (max-width: 992px) {
             body {
                 flex-direction: column;
@@ -526,6 +592,16 @@
             
             .filter-section {
                 flex-direction: column;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .pagination-controls {
+                justify-content: center;
             }
         }
     </style>
@@ -583,7 +659,7 @@
     
     <!-- Main Content -->
     <div class="main-content">
-        <div class="top-bar">
+<!--        <div class="top-bar">
             <div class="search-bar">
                 <i class="fas fa-search"></i>
                 <input type="text" placeholder="Search products, suppliers...">
@@ -599,7 +675,7 @@
                     Logout
                 </button>
             </div>
-        </div>
+        </div>-->
         
         <div class="content-area">
             <div class="container">
@@ -660,7 +736,8 @@
                     
                     <!-- Results Section -->
                     <div id="resultsSection">
-                        <div class="results-count" id="resultsCount">Showing all products</div>
+                        <!-- Pagination Info will be moved here -->
+                        <div class="pagination-info" id="paginationInfo"></div>
                         
                         <table id="productsTable">
                             <thead>
@@ -680,6 +757,20 @@
                             </tbody>
                         </table>
                         
+                        <!-- Pagination Controls -->
+                        <div class="pagination-container">
+                            <div class="pagination-info" id="resultsInfo"></div>
+                            <div class="pagination-controls">
+                                <button class="pagination-btn" id="prevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </button>
+                                <div class="page-numbers" id="pageNumbers"></div>
+                                <button class="pagination-btn" id="nextPage" disabled>
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
                         <!-- Empty State -->
                         <div id="emptyState" class="empty-state" style="display: none;">
                             <i class="fas fa-box-open"></i>
@@ -693,70 +784,96 @@
     </div>
 
     <script>
-     let products = [];
-     let filteredProducts = [];
+        let products = [];
+        let filteredProducts = [];
+        let currentPage = 1;
+        const itemsPerPage = 7;
 
-     try {
-         <c:if test="${not empty products}">
-         products = [
-             <c:forEach var="p" items="${products}" varStatus="status">
-             {
-                 id: ${p.id},
-                 name: "${fn:escapeXml(p.name)}",
-                 description: "${fn:escapeXml(p.description)}",
-                 unit: "${fn:escapeXml(p.unit)}",
-                 inventoryQuantity: "${fn:escapeXml(p.inventoryQuantity)}",
-                 type: "${fn:escapeXml(p.type)}",
-                 standardPrice: "${fn:escapeXml(p.standardPrice)}"
-             }<c:if test="${!status.last}">,</c:if>
-             </c:forEach>
-         ];
-         </c:if>
-         <c:if test="${empty products}">
-         products = [];
-         </c:if>
+        try {
+            <c:if test="${not empty products}">
+            products = [
+                <c:forEach var="p" items="${products}" varStatus="status">
+                {
+                    id: ${p.id},
+                    name: "${fn:escapeXml(p.name)}",
+                    description: "${fn:escapeXml(p.description)}",
+                    unit: "${fn:escapeXml(p.unit)}",
+                    inventoryQuantity: "${fn:escapeXml(p.inventoryQuantity)}",
+                    type: "${fn:escapeXml(p.type)}",
+                    standardPrice: "${fn:escapeXml(p.standardPrice)}"
+                }<c:if test="${!status.last}">,</c:if>
+                </c:forEach>
+            ];
+            </c:if>
+            <c:if test="${empty products}">
+            products = [];
+            </c:if>
 
-         console.log('Products loaded:', products);
-         filteredProducts = [...products];
-     } catch (error) {
-         console.error('Error initializing products:', error);
-         products = [];
-         filteredProducts = [];
-     }
-
+            console.log('Products loaded:', products);
+            filteredProducts = [...products];
+        } catch (error) {
+            console.error('Error initializing products:', error);
+            products = [];
+            filteredProducts = [];
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
-          console.log('DOM ready - Products:', products);
-         console.log('DOM ready - Filtered:', filteredProducts);
+            console.log('DOM ready - Products:', products);
+            console.log('DOM ready - Filtered:', filteredProducts);
             displayProducts();
-           
+            
+            // Thêm event listeners cho phân trang
+            document.getElementById('prevPage').addEventListener('click', goToPreviousPage);
+            document.getElementById('nextPage').addEventListener('click', goToNextPage);
         });
-      
-
 
         function displayProducts() {
             const tableBody = document.getElementById('productsTableBody');
             const emptyState = document.getElementById('emptyState');
-            const resultsCount = document.getElementById('resultsCount');
+            const resultsInfo = document.getElementById('resultsInfo');
+            const table = document.getElementById('productsTable');
+            const paginationContainer = document.querySelector('.pagination-container');
+
+            const totalItems = filteredProducts.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
             
-            // Update results count
-            resultsCount.textContent = `Showing \${filteredProducts.length} product\${filteredProducts.length !== 1 ? 's' : ''}`;
-            
-            if (filteredProducts.length === 0) {
-                tableBody.innerHTML = '';
-                document.getElementById('productsTable').style.display = 'none';
+            // Đảm bảo currentPage hợp lệ
+            if (currentPage > totalPages) {
+                currentPage = totalPages || 1;
+            }
+
+            // Tính toán items cho trang hiện tại
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            const currentItems = filteredProducts.slice(startIndex, endIndex);
+
+            console.log('Displaying products:', {
+                totalItems,
+                totalPages,
+                currentPage,
+                startIndex,
+                endIndex,
+                currentItemsCount: currentItems.length
+            });
+
+            // Cập nhật thông tin kết quả
+            if (totalItems === 0) {
+                resultsInfo.textContent = 'No products found';
+                table.style.display = 'none';
+                paginationContainer.style.display = 'none';
                 emptyState.style.display = 'block';
                 return;
             }
-            
-            // Show table and hide empty state
-            document.getElementById('productsTable').style.display = 'table';
+
+            resultsInfo.textContent = 'Showing ' + (startIndex + 1) + '-' + endIndex + ' of ' + totalItems + ' product' + (totalItems !== 1 ? 's' : '');
+            table.style.display = 'table';
+            paginationContainer.style.display = 'flex';
             emptyState.style.display = 'none';
-            
-            // Populate table
+
+            // Hiển thị dữ liệu
             tableBody.innerHTML = '';
-            filteredProducts.forEach(product => {
-                const row = document.createElement('tr');
+            currentItems.forEach(product => {
+                console.log('Rendering product:', product);
                 
                 // Determine stock level class
                 let stockClass = 'stock-high';
@@ -765,39 +882,87 @@
                 } else if (product.inventoryQuantity < 100) {
                     stockClass = 'stock-medium';
                 }
-                
-                row.innerHTML = `
-                    <td>
-                        <strong>ID:P\${product.id.toString().padStart(4, '0')}</strong>
-                    </td>
-                    <td>
-                        <div class="product-info">
-                            <div class="product-details">
-                                <h4>\${product.name}</h4>
-                            </div>
-                        </div>
-                    </td>
-                    <td>\${product.type}</td>
-                    <td>\${product.unit}</td>
-                    <td class="price">\${formatCurrency(product.standardPrice)}</td>
-                    <td class="stock-info \${stockClass}">\${product.inventoryQuantity}</td>
-                    <td>
-                        <div class="description-text" title="\${product.description || 'No description'}">
-                            \${product.description || 'No description available'}
-                        </div>
-                    </td>
-                    <td class="action-cell">
-                        <button class="btn btn-primary btn-sm" onclick="selectProduct(\${product.id})">
-                            <i class="fas fa-check"></i> Choose
-                        </button>
-                    </td>
-                `;
+
+                const row = document.createElement('tr');
+                row.innerHTML = 
+                    '<td>' +
+                        '<strong>ID: P' + product.id.toString().padStart(4, '0') + '</strong>' +
+                    '</td>' +
+                    '<td>' +
+                        '<div class="product-info">' +
+                            '<div class="product-details">' +
+                                '<h4>' + product.name + '</h4>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td>' + product.type + '</td>' +
+                    '<td>' + product.unit + '</td>' +
+                    '<td class="price">' + formatCurrency(product.standardPrice) + '</td>' +
+                    '<td class="stock-info ' + stockClass + '">' + product.inventoryQuantity + '</td>' +
+                    '<td>' +
+                        '<div class="description-text" title="' + (product.description || 'No description') + '">' +
+                            (product.description || 'No description available') +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="action-cell">' +
+                        '<button class="btn btn-primary btn-sm" onclick="selectProduct(' + product.id + ')">' +
+                            '<i class="fas fa-check"></i> Choose' +
+                        '</button>' +
+                    '</td>';
                 
                 tableBody.appendChild(row);
             });
+
+            // Cập nhật điều khiển phân trang
+            updatePaginationControls(totalPages);
         }
 
-       
+        function updatePaginationControls(totalPages) {
+            const prevButton = document.getElementById('prevPage');
+            const nextButton = document.getElementById('nextPage');
+            const pageNumbersContainer = document.getElementById('pageNumbers');
+
+            // Cập nhật nút Previous/Next
+            prevButton.disabled = currentPage === 1;
+            nextButton.disabled = currentPage === totalPages || totalPages === 0;
+
+            // Tạo số trang
+            pageNumbersContainer.innerHTML = '';
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            // Điều chỉnh nếu gần cuối
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.className = 'page-number' + (i === currentPage ? ' active' : '');
+                pageButton.textContent = i;
+                pageButton.addEventListener('click', function() {
+                    currentPage = i;
+                    displayProducts();
+                });
+                pageNumbersContainer.appendChild(pageButton);
+            }
+        }
+
+        function goToPreviousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                displayProducts();
+            }
+        }
+
+        function goToNextPage() {
+            const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayProducts();
+            }
+        }
 
         function selectProduct(productId) {
             console.log('Selected product ID:', productId);
@@ -812,17 +977,16 @@
             const selectedProducts = JSON.parse(sessionStorage.getItem('selectedProducts') || '[]');
             console.log('còn nè:', selectedProducts);
 
-
             // Kiểm tra xem sản phẩm đã có chưa
             const alreadyExists = selectedProducts.some(p => p.id === productId);
 
             if (alreadyExists) {
-                alert(`Product "\${product.name}" is already in the import list!`);
+                alert('Product "' + product.name + '" is already in the import list!');
                 return;
             }
 
             // Nếu chưa có, xác nhận thêm vào
-            if (confirm(`Add "\${product.name}" to import list?`)) {
+            if (confirm('Add "' + product.name + '" to import list?')) {
                 // Thêm vào sessionStorage
                 selectedProducts.push(product);
                 sessionStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
@@ -845,7 +1009,6 @@
             }
         }
 
-
         function formatCurrency(amount) {
             return new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
@@ -864,7 +1027,7 @@
                 // In a real application, this would navigate to the selected page
                 const pageName = this.querySelector('span').textContent;
                 if (pageName !== 'Product Management') {
-                    alert(`Navigating to ${pageName}...`);
+                    alert('Navigating to ' + pageName + '...');
                 }
             });
         });

@@ -26,7 +26,7 @@ public class ImportReceiptDAO extends DAO {
   
 
     public ImportReceipt createImportReceipt(ImportReceipt importReceipt) {
-        String sqlInsertReceipt = "INSERT INTO tblImportReceipt (totalPrice, tblWarehouseStaffId, tblSupplierId) VALUES (?, ?, ?)";
+        String sqlInsertReceipt = "INSERT INTO tblImportReceipt ( tblWarehouseStaffId, tblSupplierId) VALUES (?, ?)";
         String sqlInsertProduct = "INSERT INTO tblImportedProduct (importedQuantity, importedPrice, tblImportReceiptId, tblProductId) VALUES (?, ?, ?, ?)";
 
         PreparedStatement stmtReceipt = null;
@@ -37,9 +37,8 @@ public class ImportReceiptDAO extends DAO {
 
             // 1️⃣ Thêm phiếu nhập
             stmtReceipt = connection.prepareStatement(sqlInsertReceipt, Statement.RETURN_GENERATED_KEYS);
-            stmtReceipt.setDouble(1, importReceipt.getTotalPrice());
-            stmtReceipt.setInt(2, Integer.parseInt(importReceipt.getWarehouseStaff().getId()));
-            stmtReceipt.setInt(3, importReceipt.getSupplier().getId());
+            stmtReceipt.setInt(1, Integer.parseInt(importReceipt.getWarehouseStaff().getId()));
+            stmtReceipt.setInt(2, importReceipt.getSupplier().getId());
             stmtReceipt.executeUpdate();
 
             // Lấy id phiếu nhập vừa tạo

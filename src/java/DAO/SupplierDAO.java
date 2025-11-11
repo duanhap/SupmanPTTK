@@ -21,30 +21,36 @@ public class SupplierDAO extends DAO{
     public SupplierDAO(){
         super();
     }
-    public List<Supplier> getSuplierByname(String name){
-        List<Supplier> suppliers = new ArrayList<>();
-        String sql = "SELECT * FROM tblSupplier WHERE name LIKE ?";
+    public List<Supplier> getSuplierByname(String name) {
+      List<Supplier> suppliers = new ArrayList<>();
+      String sql = "SELECT * FROM tblSupplier WHERE (? = '' OR name LIKE ?)";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+      try (PreparedStatement stmt = connection.prepareStatement(sql)) {
 
-            stmt.setString(1, "%" + name + "%");
-            ResultSet rs = stmt.executeQuery();
+          // Nếu name null → gán chuỗi rỗng
+          if (name == null) name = "";
 
-            while (rs.next()) {
-                Supplier s = new Supplier();
-                s.setId(rs.getInt("id"));
-                s.setName(rs.getString("name"));
-                s.setAddress(rs.getString("address"));
-                s.setPhone(rs.getString("phone"));
-                s.setEmail(rs.getString("email"));
-                s.setDescription(rs.getString("description"));
-                suppliers.add(s);
-            }
+          stmt.setString(1, name);
+          stmt.setString(2, "%" + name + "%");
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+          ResultSet rs = stmt.executeQuery();
 
-        return suppliers;
-    }
+          while (rs.next()) {
+              Supplier s = new Supplier();
+              s.setId(rs.getInt("id"));
+              s.setName(rs.getString("name"));
+              s.setAddress(rs.getString("address"));
+              s.setPhone(rs.getString("phone"));
+              s.setEmail(rs.getString("email"));
+              s.setDescription(rs.getString("description"));
+              suppliers.add(s);
+          }
+
+      } catch (SQLException e) {
+          e.printStackTrace();
+      }
+
+      return suppliers;
+  }
+
 }
