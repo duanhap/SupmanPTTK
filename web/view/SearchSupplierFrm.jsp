@@ -902,7 +902,7 @@
         function selectSupplier(supplierId) {
             console.log('Selected supplier ID:', supplierId);
             const supplier = suppliers.find(s => s.id === supplierId);
-            if (supplier && confirm(`Select ${supplier.name} as your supplier?`)) {
+            if (supplier && confirm(`Select \${supplier.name} as your supplier?`)) {
                 fetch('ImportServlet?action=selectSupplier', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
